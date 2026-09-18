@@ -1,0 +1,67 @@
+{
+  "version": "1.0",
+  "timezone": "Asia/Shanghai",
+  "enabled": false,
+  "disabled_reason": "live_cli_region_not_supported",
+  "daily": {
+    "time": "03:30",
+    "backend": "agy",
+    "model": "gemini-3.7-flash-low",
+    "reasoning_effort": "low",
+    "lookback_hours": 36
+  },
+  "weekly": {
+    "weekday": 6,
+    "time": "04:00",
+    "backend": "agy",
+    "model": "gemini-3.7-flash-low",
+    "reasoning_effort": "low",
+    "lookback_days": 8
+  },
+  "fallback_models": {
+    "status": "google_only_no_cross_provider_fallback",
+    "daily": "gemini-3.6-flash-low",
+    "weekly": "gemini-3.6-flash-low"
+  },
+  "provider_chain": {
+    "daily": [
+      {"backend": "agy", "model": "gemini-3.7-flash-low", "receipt_eligible": true},
+      {"backend": "agy", "model": "gemini-3.6-flash-low", "receipt_eligible": true}
+    ],
+    "weekly": [
+      {"backend": "agy", "model": "gemini-3.7-flash-low", "receipt_eligible": true},
+      {"backend": "agy", "model": "gemini-3.6-flash-low", "receipt_eligible": true}
+    ]
+  },
+  "failure_isolation": {
+    "quota_or_rate_limit_retry_seconds": 21600,
+    "authentication_retry_seconds": 21600,
+    "model_unavailable_retry_seconds": 86400,
+    "cli_unavailable_retry_seconds": 21600,
+    "timeout_retry_seconds": 3600,
+    "network_retry_seconds": 3600,
+    "default_retry_seconds": 3600
+  },
+  "retention": {
+    "agent_runs_days": 3,
+    "reports_days": 7,
+    "verified_archives_days": 14
+  },
+  "limits": {
+    "max_records_per_pass": 240,
+    "recent_record_reserve": 40,
+    "max_excerpt_chars": 240000,
+    "max_chars_per_file": 6000
+  },
+  "safety": {
+    "archive_requires_verified_receipt": true,
+    "actual_broker_writes": false,
+    "external_sends": false,
+    "blocked_roots": [
+      "/app/secrets",
+      "/root",
+      "/root/Jts",
+      "/var/run/docker.sock"
+    ]
+  }
+}

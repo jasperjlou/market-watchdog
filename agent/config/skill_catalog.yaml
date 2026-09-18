@@ -1,0 +1,66 @@
+version: 0.1
+name: market_watchdog_skill_catalog
+updated_at: "2026-06-07"
+
+router:
+  command: python3 /app/agent/scripts/skill_router.py
+  default_mode: dry_run
+  execution_flag: --execute
+  runs_dir: /app/agent/runs
+
+skills:
+  - id: serenity_bottleneck
+    path: /app/agent/skills/market/serenity_bottleneck/SKILL.md
+    status: approved_research_only
+    preferred_workers: [gemini, grok]
+    tags:
+      - supply_chain
+      - bottleneck
+      - semiconductor
+      - photonics
+      - public_equity
+      - thesis_review
+    blocked_actions:
+      - actual_broker_order_api_call
+      - actual_broker_cancel_api_call
+      - actual_broker_modify_api_call
+      - broker_transmit_true
+      - secret_read
+      - external_send
+
+  - id: news_reaction_trader
+    path: /app/agent/skills/market/news_reaction_trader/SKILL.md
+    status: approved_research_and_trade_draft
+    preferred_workers: [grok, gemini]
+    tags:
+      - breaking_news
+      - market_anomaly
+      - portfolio_hit
+      - order_ticket_draft
+      - cancel_replace_suggestion
+      - public_equity
+    allowed_outputs:
+      - trade_recommendation
+      - non_transmitting_order_ticket_draft
+      - cancel_replace_suggestion
+    blocked_actions:
+      - actual_broker_order_api_call
+      - actual_broker_cancel_api_call
+      - actual_broker_modify_api_call
+      - broker_transmit_true
+      - secret_read
+      - external_send_from_worker
+
+vendor_reviews:
+  - id: tradingagents
+    path: /app/agent/skills/vendor/TradingAgents.SKILL.md
+    status: sandbox_review_only
+  - id: fincept_terminal
+    path: /app/agent/skills/vendor/FinceptTerminal.REVIEW.md
+    status: do_not_install_main_container
+  - id: nango
+    path: /app/agent/skills/vendor/Nango.REVIEW.md
+    status: optional_sidecar_later
+  - id: librechat
+    path: /app/agent/skills/vendor/LibreChat.REVIEW.md
+    status: optional_sidecar_later

@@ -1,0 +1,133 @@
+{
+  "version": "0.1",
+  "updated_at": "2026-06-07",
+  "purpose": "Quant tool routing for fast news reaction, K-line checks, fundamentals, and validation.",
+  "principle": "Keep the live container light. Use yfinance in the hot path; use heavy tools as optional sidecars or research validators.",
+  "tools": {
+    "yfinance": {
+      "source": "https://github.com/ranaroussi/yfinance",
+      "status": "active_core_market_data",
+      "runtime_required": true,
+      "hot_path": true,
+      "roles": [
+        "latest price and K-line check",
+        "batch ticker snapshot",
+        "options chain clue",
+        "Yahoo news/search clue",
+        "S2 market-resonance evidence"
+      ],
+      "use_when": [
+        "every L2+ candidate",
+        "every holding/open-order hit",
+        "scheduled K-line anomaly scan",
+        "before any order draft"
+      ],
+      "limits": [
+        "not an official source",
+        "data can be delayed or revised",
+        "must not alone promote social rumor above L1 unless price resonance is strong"
+      ],
+      "feeds_scores": [
+        "price_score",
+        "data_quality_score",
+        "execution_readiness_score",
+        "backtestability_score"
+      ]
+    },
+    "openbb": {
+      "source": "https://github.com/OpenBB-finance/OpenBB",
+      "status": "candidate_research_sidecar",
+      "runtime_required": false,
+      "hot_path": false,
+      "roles": [
+        "multi-provider market and macro data",
+        "screeners",
+        "news and research expansion",
+        "AI-agent data surface"
+      ],
+      "use_when": [
+        "L3/L4 deep check when yfinance is insufficient",
+        "user asks broad market scan",
+        "official/macro/data-provider cross-check is needed"
+      ],
+      "sidecar_reason": "Large platform; useful, but should not slow or bloat the core alert runner.",
+      "feeds_scores": [
+        "data_quality_score",
+        "corroboration_score",
+        "fundamental_score"
+      ]
+    },
+    "financetoolkit": {
+      "source": "https://github.com/JerBouma/FinanceToolkit",
+      "status": "candidate_fundamental_sidecar",
+      "runtime_required": false,
+      "hot_path": false,
+      "roles": [
+        "ratio analysis",
+        "profitability/liquidity/solvency/valuation checks",
+        "financial-statement quality review"
+      ],
+      "use_when": [
+        "event affects earnings, margins, balance sheet, valuation, capital structure",
+        "L3/L4 recommendation needs fundamental confirmation",
+        "holding review every scheduled deep pass"
+      ],
+      "feeds_scores": [
+        "fundamental_score",
+        "decision_score",
+        "backtestability_score"
+      ]
+    },
+    "vectorbt": {
+      "source": "https://github.com/polakowo/vectorbt",
+      "status": "candidate_backtest_sidecar",
+      "runtime_required": false,
+      "hot_path": false,
+      "roles": [
+        "fast vectorized backtest",
+        "parameter sweep",
+        "drawdown/performance analytics",
+        "walk-forward or robustness check"
+      ],
+      "use_when": [
+        "a recurring signal is about to become a persistent rule",
+        "strategy-derived L3/L4 suggestion needs validation",
+        "post-trade or post-alert audit"
+      ],
+      "feeds_scores": [
+        "strategy_validation_score",
+        "backtestability_score",
+        "risk_gate_score"
+      ]
+    },
+    "awesome_quant": {
+      "source": "https://github.com/wilsonfreitas/awesome-quant",
+      "status": "reference_index",
+      "runtime_required": false,
+      "hot_path": false,
+      "roles": [
+        "library discovery",
+        "research checklist expansion",
+        "future sidecar candidate sourcing"
+      ],
+      "use_when": [
+        "reviewing new quant modules",
+        "expanding evaluation dimensions",
+        "finding dedicated tools for gaps"
+      ],
+      "feeds_scores": []
+    }
+  },
+  "decision": {
+    "install_now_in_core": [
+      "yfinance if missing"
+    ],
+    "do_not_install_now_in_core": [
+      "openbb",
+      "financetoolkit",
+      "vectorbt"
+    ],
+    "reason": "The live system needs low latency and predictable startup. Heavy research/backtest packages belong in optional sidecars until a concrete task needs them.",
+    "health_check_policy": "Report yfinance as core. Report OpenBB, FinanceToolkit, and vectorbt as optional quant sidecars."
+  }
+}

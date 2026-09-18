@@ -1,0 +1,141 @@
+version: 0.1
+
+alert_levels:
+  L0:
+    score_range: [0, 24]
+    action: log_only
+    notify: []
+  L1:
+    score_range: [25, 69]
+    action: log_and_gmail_summary
+    notify: [gmail]
+  L2:
+    score_range: [70, 84]
+    action: alert_candidate
+    notify: [wechat, gmail]
+  L3:
+    score_range: [85, 100]
+    action: urgent_alert_candidate
+    notify: [wechat, gmail]
+
+alert_score:
+  min: 0
+  max: 100
+  score_weights:
+    move_intensity: 20
+    source_trust: 20
+    corroboration: 15
+    portfolio_relevance: 25
+    freshness: 10
+    event_type_weight: 10
+
+hard_triggers:
+  L3_candidates:
+    - "S0 source confirms market-wide trading halt, major exchange rule shock, or systemic liquidity event"
+    - "SEC EDGAR major disclosure materially changes NVDA/MSFT/GOOG/TSM/RKLB/SATS thesis"
+    - "Federal Register confirms major AI/semiconductor export control escalation"
+    - "HKMA or Treasury confirms severe liquidity/rates event with portfolio relevance"
+    - "Defense Contracts, SAM.gov, NASA, or FCC confirms material RKLB/SATS-related award, license, denial, or spectrum event"
+  L2_candidates:
+    - "S0/S1 macro release materially changes rate, inflation, FX, or volatility context"
+    - "S0 company disclosure or government contract has direct watchlist relevance"
+    - "Price resonance confirms broad ETF/theme move plus S0/S1 event context"
+  exclusions:
+    - "S3 alone cannot be L2 or L3"
+    - "Price move alone cannot become direct_buy or direct_sell"
+    - "No automatic trading; no intraday buy/sell signals"
+
+source_tier_rules:
+  S0:
+    can_trigger_l2_l3_alone: true
+    confirmation_required: false
+    max_alert_level: L3
+  S1:
+    can_trigger_l2_l3_alone: true
+    confirmation_required: false
+    max_alert_level: L3
+  S2:
+    can_trigger_l2_l3_alone: false
+    confirmation_required: true
+    max_alert_level: L2
+  S3:
+    can_trigger_l2_l3_alone: false
+    confirmation_required: true
+    max_alert_level: L1
+    rule: "alternative/social data 只可作为 corroboration，不得单独触发 WeChat。"
+
+price_resonance_rules:
+  purpose: "只判断事件是否影响原投资计划，不生成交易信号。"
+  resonance_required_for_price_only_alerts: true
+  broad_market_resonance:
+    assets: [VOO, SPY, IVV, QQQM, QQQ, ^VIX, ^TNX]
+    min_confirming_assets: 2
+    max_alert_without_event: L1
+  semiconductor_resonance:
+    assets: [QQQM, SMH, SOXX, NVDA, TSM, FLKR, USDKRW=X]
+    min_confirming_assets: 2
+    max_alert_without_event: L1
+  japan_korea_fx_resonance:
+    assets: [FLJP, EWJ, USDJPY=X, FLKR, EWY, USDKRW=X]
+    min_confirming_assets: 2
+    max_alert_without_event: L1
+  single_stock_resonance:
+    assets: [NVDA, MSFT, GOOG, TSM, RKLB, SATS]
+    requires_s0_or_s1_event_for_l2_l3: true
+
+dedupe:
+  enabled: true
+  event_key_fields: [source_id, canonical_entity, event_type, filing_or_notice_id, normalized_title]
+  time_window_min: 720
+  merge_strategy: "keep_highest_alert_score_and_append_sources"
+
+cooldown:
+  enabled: true
+  default_min: 180
+  per_level:
+    L0: 60
+    L1: 180
+    L2: 120
+    L3: 60
+  allow_escalation_bypass: true
+
+source_health:
+  track_success_rate: true
+  track_latency: true
+  track_parse_errors: true
+  unhealthy_after_consecutive_failures: 3
+  degraded_source_max_alert_level: L1
+  notify_health_issues_to_gmail: true
+
+no_trade_signal_policy:
+  no_order_placement: true
+  no_intraday_buy_sell_signal: true
+  no_direct_buy_or_sell_language: true
+  allowed_plan_status_outputs: [maintain, pause, halve, review, prepare_cash, use_deferred_budget]
+  required_disclaimer: "本系统仅做 market observation and plan-impact monitoring，不是 investment advice。"
+
+main_loop:
+  interval_min: 10
+  run_mode: silent_by_default
+  polling_policy: "主循环每 10 分钟运行一次；每个 source 仅在 now - last_checked_at >= source.poll_interval_min 时实际抓取。"
+  steps:
+    - poll_enabled_sources_due_by_poll_interval
+    - normalize_events
+    - update_source_health
+    - dedupe_events
+    - score_events
+    - apply_source_tier_rules
+    - apply_price_resonance_rules
+    - determine_alert_level
+    - call_codex_for_l2_l3_candidates_only
+    - send_notifications
+    - persist_state
+  l0_l1_behavior: "L0 only logs; L1 logs and may enter Gmail summary."
+  l2_l3_behavior: "Only L2/L3 trigger WeChat and Gmail full report."
+
+codex_invocation:
+  enabled: true
+  rule: "Codex 只在 L2/L3 candidate events 时调用。"
+  forbidden_for_levels: [L0, L1]
+  input_scope: [event_summary, source_evidence, watchlist_relevance, portfolio_plan_context]
+  output_scope: [plan_impact, affected_assets, confidence, required_sources, disclaimer]

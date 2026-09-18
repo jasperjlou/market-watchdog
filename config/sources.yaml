@@ -1,0 +1,587 @@
+version: 0.8e-a
+
+source_tiers:
+  S0: "Official primary sources: regulators, exchanges, government agencies, central banks, and issuer disclosure systems."
+  S1: "Official or quasi-official market and macro data sources."
+  S2: "High-trust news, research, or structured data aggregators."
+  S3: "Alternative, social, or broad media signals; cannot independently escalate beyond L1."
+
+defaults:
+  timezone: America/Los_Angeles
+  timeout_seconds: 20
+  retries: 2
+  backoff_seconds: [2, 5, 15]
+  user_agent: market-intel-bot/1.0
+  conservative_host_rps: 1
+  enable_etag: true
+  enable_last_modified: true
+
+scoring:
+  weights:
+    source_score: 0.35
+    price_score: 0.20
+    topic_score: 0.20
+    corroboration_score: 0.15
+    entity_score: 0.10
+  source_scores:
+    S0: 1.00
+    S1: 0.75
+    S2: 0.55
+    S3: 0.25
+  alert_thresholds:
+    L0: 0.35
+    L1: 0.55
+    L2: 0.70
+    L3: 0.85
+
+cooldowns:
+  default_minutes:
+    L1: 20
+    L2: 10
+    L3: 2
+  update_bypass: true
+
+dedup:
+  exact_key: ["source_name", "canonical_url", "published_bucket", "title_hash"]
+  cross_source_key: ["entity", "topic", "time_bucket_30m"]
+  treat_same_source_id_as_update: true
+
+sectors:
+  - id: equities_volatility
+    name: "全球权益与波动"
+    description: "Global equity index, volatility, and risk-appetite monitoring for broad market stress."
+    tickers: [VOO, QQQM, SPY, QQQ, VIX, VXX, UVXY]
+    trigger_rules:
+      keywords: ["volatility spike", "circuit breaker", "market halt", "risk-off", "drawdown"]
+      price_resonance: "Equity index move >= 1.5%, VIX move >= 10%, or volatility term-structure inversion."
+      escalation: "Escalate when official market data aligns with broad ETF or futures price resonance."
+    poll:
+      normal_seconds: 900
+      event_window_seconds: 120
+    sources:
+      - name: "Cboe VIX historical data"
+        tier: S1
+        type: market_data
+        api: "Cboe VIX historical data file"
+        auth_required: false
+        access: public
+        rate_limit: "daily file; conservative fetch only"
+        latency_estimate: "end_of_day"
+        priority: P0
+        topics: [volatility, equity_indices, risk]
+        enabled: true
+        mvp_enabled: true
+      - name: "Exchange market status notices"
+        tier: S0
+        type: exchange_notice
+        api: "official exchange notices"
+        auth_required: false
+        access: public
+        rate_limit: "1 request per host per second"
+        latency_estimate: "minutes"
+        priority: P1
+        topics: [halts, market_structure, equity_indices]
+        enabled: true
+        mvp_enabled: false
+      - name: "GDELT global equity volatility monitor"
+        tier: S3
+        type: media_aggregate
+        api: "GDELT"
+        auth_required: false
+        access: public
+        rate_limit: "1 request per host per second"
+        latency_estimate: "minutes"
+        priority: P2
+        topics: [volatility, market_stress, global_equities]
+        enabled: true
+        mvp_enabled: true
+
+  - id: rates_central_banks
+    name: "主权利率与央行"
+    description: "Sovereign rates, central-bank policy, yield-curve, and liquidity facility monitoring."
+    tickers: [SGOV, BIL, SHY, IEF, TLT, VOO, QQQM]
+    trigger_rules:
+      keywords: ["rate decision", "yield curve", "auction", "QT", "QE", "liquidity facility"]
+      price_resonance: "2Y or 10Y yield move >= 10 bps, SGOV/TLT dislocation, or major futures repricing."
+      escalation: "Escalate S0 central-bank or treasury notices immediately when confirmed by rates move."
+    poll:
+      normal_seconds: 1800
+      event_window_seconds: 120
+    sources:
+      - name: "U.S. Treasury interest rate statistics"
+        tier: S0
+        type: official_data
+        api: "Treasury interest rate statistics"
+        auth_required: false
+        access: public
+        rate_limit: "1 request per host per second"
+        latency_estimate: "daily"
+        priority: P0
+        topics: [treasury_yields, curve, rates]
+        enabled: true
+        mvp_enabled: true
+      - name: "ECB Data Portal API"
+        tier: S0
+        type: official_data
+        api: "ECB Data Portal API"
+        auth_required: false
+        access: public
+        rate_limit: "1 request per host per second"
+        latency_estimate: "daily"
+        priority: P0
+        topics: [euro_area_rates, central_bank, policy]
+        enabled: true
+        mvp_enabled: true
+      - name: "Central bank speeches and calendars"
+        tier: S1
+        type: official_calendar
+        api: "official central bank calendars"
+        auth_required: false
+        access: public
+        rate_limit: "1 request per host per second"
+        latency_estimate: "minutes"
+        priority: P1
+        topics: [speeches, policy_calendar, guidance]
+        enabled: true
+        mvp_enabled: false
+
+  - id: fx_capital_flows
+    name: "外汇与资本流向"
+    description: "FX, Asia capital-flow, and liquidity-pressure monitoring focused on USD, HKD, JPY, and KRW."
+    tickers: [FLJP, FLKR, FXY, EWJ, EWY, UUP]
+    trigger_rules:
+      keywords: ["intervention", "capital outflow", "currency band", "FX reserves", "liquidity operation"]
+      price_resonance: "USDHKD band pressure, JPY/KRW move >= 1%, or Asia ETF gap >= 1.5%."
+      escalation: "Escalate official FX or reserve actions when mirrored by spot FX or country ETF moves."
+    poll:
+      normal_seconds: 1800
+      event_window_seconds: 180
+    sources:
+      - name: "HKMA API"
+        tier: S0
+        type: official_data
+        api: "HKMA API"
+        auth_required: false
+        access: public
+        rate_limit: "1 request per host per second"
+        latency_estimate: "minutes"
+        priority: P0
+        topics: [usdhkd, liquidity, reserves]
+        enabled: true
+        mvp_enabled: true
+      - name: "Bank of Japan official releases"
+        tier: S0
+        type: official_release
+        api: "BOJ official releases"
+        auth_required: false
+        access: public
+        rate_limit: "1 request per host per second"
+        latency_estimate: "minutes"
+        priority: P1
+        topics: [jpy, intervention, policy]
+        enabled: true
+        mvp_enabled: false
+      - name: "GDELT Asia FX capital flow monitor"
+        tier: S3
+        type: media_aggregate
+        api: "GDELT"
+        auth_required: false
+        access: public
+        rate_limit: "1 request per host per second"
+        latency_estimate: "minutes"
+        priority: P2
+        topics: [fx, capital_flows, asia]
+        enabled: true
+        mvp_enabled: true
+
+  - id: macro_calendar
+    name: "宏观数据与经济日历"
+    description: "Scheduled macro releases and economic-calendar changes with emphasis on US inflation, labor, GDP, and income data."
+    tickers: [VOO, QQQM, SGOV, TLT, UUP]
+    trigger_rules:
+      keywords: ["CPI", "payrolls", "unemployment", "PCE", "GDP", "retail sales", "revision"]
+      price_resonance: "Rates move >= 8 bps, equity futures move >= 1%, or USD index move >= 0.7% around release."
+      escalation: "Escalate official release surprises that coincide with rates, FX, or broad equity resonance."
+    poll:
+      normal_seconds: 3600
+      event_window_seconds: 60
+    sources:
+      - name: "BLS RSS feeds"
+        tier: S0
+        type: official_rss
+        api: "BLS RSS feeds"
+        auth_required: false
+        access: public
+        rate_limit: "1 request per host per second"
+        latency_estimate: "minutes"
+        priority: P0
+        topics: [cpi, employment, wages]
+        enabled: true
+        mvp_enabled: true
+      - name: "BEA release schedule JSON/ICS"
+        tier: S0
+        type: official_calendar
+        api: "BEA release schedule JSON/ICS"
+        auth_required: false
+        access: public
+        rate_limit: "1 request per host per second"
+        latency_estimate: "calendar"
+        priority: P0
+        topics: [gdp, pce, income, spending]
+        enabled: true
+        mvp_enabled: true
+      - name: "Economic calendar aggregator"
+        tier: S2
+        type: calendar_aggregate
+        api: "public economic calendar aggregate"
+        auth_required: false
+        access: public
+        rate_limit: "1 request per host per second"
+        latency_estimate: "minutes"
+        priority: P2
+        topics: [macro_calendar, consensus, revisions]
+        enabled: true
+        mvp_enabled: false
+
+  - id: credit_liquidity_banks
+    name: "信用、流动性与银行压力"
+    description: "Credit spreads, bank stress, liquidity facilities, and funding-market alerts."
+    tickers: [KRE, XLF, HYG, LQD, TLT, SGOV]
+    trigger_rules:
+      keywords: ["bank stress", "liquidity facility", "deposit flight", "credit spread", "funding stress"]
+      price_resonance: "Regional bank ETF move >= 3%, credit ETF dislocation, or funding spread widening."
+      escalation: "Escalate when official liquidity actions or supervisory statements coincide with bank/credit price stress."
+    poll:
+      normal_seconds: 1800
+      event_window_seconds: 120
+    sources:
+      - name: "Federal Reserve supervisory releases"
+        tier: S0
+        type: official_release
+        api: "Federal Reserve official releases"
+        auth_required: false
+        access: public
+        rate_limit: "1 request per host per second"
+        latency_estimate: "minutes"
+        priority: P0
+        topics: [banking, liquidity, supervision]
+        enabled: true
+        mvp_enabled: false
+      - name: "FDIC bank failure and enforcement notices"
+        tier: S0
+        type: official_notice
+        api: "FDIC official notices"
+        auth_required: false
+        access: public
+        rate_limit: "1 request per host per second"
+        latency_estimate: "minutes"
+        priority: P1
+        topics: [bank_failures, enforcement, deposits]
+        enabled: true
+        mvp_enabled: false
+      - name: "Credit liquidity newswire aggregate"
+        tier: S2
+        type: news_aggregate
+        api: "trusted market news aggregate"
+        auth_required: false
+        access: public
+        rate_limit: "1 request per host per second"
+        latency_estimate: "minutes"
+        priority: P2
+        topics: [credit, liquidity, banks]
+        enabled: true
+        mvp_enabled: false
+
+  - id: commodities_energy
+    name: "商品与能源"
+    description: "Energy, commodity supply, inventory, and geopolitical supply-risk monitoring."
+    tickers: [XLE, USO, UNG, GLD, CPER, BDRY]
+    trigger_rules:
+      keywords: ["inventory draw", "OPEC", "sanctions", "pipeline outage", "LNG", "strategic reserve"]
+      price_resonance: "Oil or gas move >= 3%, commodity ETF gap, or shipping-energy spread shock."
+      escalation: "Escalate official supply or sanctions events when mirrored by commodity futures or energy equities."
+    poll:
+      normal_seconds: 3600
+      event_window_seconds: 180
+    sources:
+      - name: "EIA energy data releases"
+        tier: S0
+        type: official_data
+        api: "EIA public releases"
+        auth_required: false
+        access: public
+        rate_limit: "1 request per host per second"
+        latency_estimate: "weekly"
+        priority: P1
+        topics: [oil, gas, inventories]
+        enabled: true
+        mvp_enabled: false
+      - name: "OPEC official press releases"
+        tier: S0
+        type: official_release
+        api: "OPEC official releases"
+        auth_required: false
+        access: public
+        rate_limit: "1 request per host per second"
+        latency_estimate: "minutes"
+        priority: P1
+        topics: [oil, production, policy]
+        enabled: true
+        mvp_enabled: false
+      - name: "Commodity market news aggregate"
+        tier: S2
+        type: news_aggregate
+        api: "trusted commodity news aggregate"
+        auth_required: false
+        access: public
+        rate_limit: "1 request per host per second"
+        latency_estimate: "minutes"
+        priority: P2
+        topics: [commodities, energy, supply]
+        enabled: true
+        mvp_enabled: false
+
+  - id: regulation_brokers_exchanges
+    name: "监管执法、券商与交易所规则"
+    description: "Regulatory enforcement, broker platform risk, exchange rules, trading restrictions, and market-structure changes."
+    tickers: [IBKR, FUTU, TIGR, HOOD, SCHW, CME, ICE, NDAQ, HKEX]
+    trigger_rules:
+      keywords: ["enforcement", "trading restriction", "margin rule", "broker outage", "exchange rule", "settlement"]
+      price_resonance: "Broker or exchange stock move >= 3%, abnormal trading halt, or sector-wide broker repricing."
+      escalation: "Escalate official regulator, exchange, or broker-platform events that affect access, margin, or trading rules."
+    poll:
+      normal_seconds: 1800
+      event_window_seconds: 120
+    sources:
+      - name: "Federal Register API"
+        tier: S0
+        type: official_api
+        api: "Federal Register API"
+        auth_required: false
+        access: public
+        rate_limit: "1 request per host per second"
+        latency_estimate: "daily"
+        priority: P0
+        topics: [regulation, rules, enforcement]
+        enabled: true
+        mvp_enabled: true
+      - name: "SEC RSS feeds"
+        tier: S0
+        type: official_rss
+        api: "SEC RSS feeds"
+        auth_required: false
+        access: public
+        rate_limit: "1 request per host per second"
+        latency_estimate: "minutes"
+        priority: P0
+        topics: [sec, enforcement, rules]
+        enabled: true
+        mvp_enabled: true
+      - name: "FINRA notices"
+        tier: S0
+        type: official_notice
+        api: "FINRA official notices"
+        auth_required: false
+        access: public
+        rate_limit: "1 request per host per second"
+        latency_estimate: "minutes"
+        priority: P1
+        topics: [broker_rules, enforcement, margin]
+        enabled: true
+        mvp_enabled: false
+
+  - id: corporate_disclosures
+    name: "公司披露、持股变化与企业行动"
+    description: "Issuer filings, insider/holder changes, corporate actions, and major disclosure events."
+    tickers: [RKLB, SATS, IBKR, FUTU, TIGR, NVDA, TSM, AMD, ASML, ASTS, PLTR]
+    trigger_rules:
+      keywords: ["8-K", "13D", "13G", "13F", "S-1", "guidance", "secondary offering", "merger"]
+      price_resonance: "Single-stock move >= 5%, after-hours gap, volume spike, or options-implied move expansion."
+      escalation: "Escalate official issuer or SEC filing changes when the mapped entity has strong price resonance."
+    poll:
+      normal_seconds: 900
+      event_window_seconds: 60
+    sources:
+      - name: "SEC EDGAR submissions API"
+        tier: S0
+        type: official_api
+        api: "SEC EDGAR submissions API"
+        auth_required: false
+        access: public
+        rate_limit: "1 request per host per second"
+        latency_estimate: "minutes"
+        priority: P0
+        topics: [filings, ownership, corporate_actions]
+        enabled: true
+        mvp_enabled: true
+      - name: "SEC company facts API"
+        tier: S0
+        type: official_api
+        api: "SEC company facts API"
+        auth_required: false
+        access: public
+        rate_limit: "1 request per host per second"
+        latency_estimate: "minutes"
+        priority: P1
+        topics: [fundamentals, filings, issuer_data]
+        enabled: true
+        mvp_enabled: false
+      - name: "Issuer investor relations RSS"
+        tier: S1
+        type: issuer_rss
+        api: "issuer investor relations feeds"
+        auth_required: false
+        access: public
+        rate_limit: "1 request per host per second"
+        latency_estimate: "minutes"
+        priority: P2
+        topics: [earnings, press_releases, guidance]
+        enabled: true
+        mvp_enabled: false
+
+  - id: ai_semis_export_controls
+    name: "AI、半导体与出口管制"
+    description: "AI infrastructure, semiconductor supply chain, export controls, and chip-equipment policy monitoring."
+    tickers: [NVDA, AMD, AVGO, TSM, ASML, MU, INTC, ARM, QCOM, LRCX, KLAC, SOXX, SMH]
+    trigger_rules:
+      keywords: ["export control", "AI accelerator", "GPU", "foundry", "EUV", "sanctions", "BIS rule"]
+      price_resonance: "AI/semi single-stock move >= 4%, SOXX/SMH move >= 2%, or supplier/customer basket divergence."
+      escalation: "Escalate official export-control or sanctions updates with direct ticker mapping or strong sector resonance."
+    poll:
+      normal_seconds: 1800
+      event_window_seconds: 120
+    sources:
+      - name: "BIS export controls releases"
+        tier: S0
+        type: official_release
+        api: "BIS export controls releases"
+        auth_required: false
+        access: public
+        rate_limit: "1 request per host per second"
+        latency_estimate: "minutes"
+        priority: P0
+        topics: [export_controls, semiconductors, ai]
+        enabled: true
+        mvp_enabled: false
+      - name: "Federal Register export controls"
+        tier: S0
+        type: official_api
+        api: "Federal Register API"
+        auth_required: false
+        access: public
+        rate_limit: "1 request per host per second"
+        latency_estimate: "daily"
+        priority: P1
+        topics: [export_controls, sanctions, semiconductors]
+        enabled: true
+        mvp_enabled: true
+      - name: "GDELT AI semiconductor monitor"
+        tier: S3
+        type: media_aggregate
+        api: "GDELT"
+        auth_required: false
+        access: public
+        rate_limit: "1 request per host per second"
+        latency_estimate: "minutes"
+        priority: P2
+        topics: [ai, semiconductors, export_controls]
+        enabled: true
+        mvp_enabled: true
+
+  - id: govt_contracts_space_fcc
+    name: "政府合同、国防航天与频谱"
+    description: "Government procurement, defense and space contracts, FCC spectrum and satellite filings, and mission awards."
+    tickers: [RKLB, SATS, ASTS, LUNR, LMT, NOC, RTX, LHX, PLTR]
+    trigger_rules:
+      keywords: ["contract award", "launch services", "spectrum license", "satellite filing", "defense procurement"]
+      price_resonance: "Space/defense single-stock move >= 5%, peer basket move, or large premarket/after-hours repricing."
+      escalation: "Escalate official contract or spectrum events when mapped to a watched issuer or peer group."
+    poll:
+      normal_seconds: 1800
+      event_window_seconds: 120
+    sources:
+      - name: "SAM.gov Get Opportunities API"
+        tier: S0
+        type: official_api
+        api: "SAM.gov Get Opportunities API"
+        auth_required: true
+        access: "public registration required; no credentials in config"
+        rate_limit: "1 request per host per second"
+        latency_estimate: "minutes"
+        priority: P0
+        topics: [government_contracts, opportunities, defense]
+        enabled: true
+        mvp_enabled: true
+      - name: "FCC ECFS and licensing notices"
+        tier: S0
+        type: official_notice
+        api: "FCC official notices"
+        auth_required: false
+        access: public
+        rate_limit: "1 request per host per second"
+        latency_estimate: "minutes"
+        priority: P1
+        topics: [spectrum, satellite, telecom]
+        enabled: true
+        mvp_enabled: false
+      - name: "NASA procurement and award notices"
+        tier: S0
+        type: official_notice
+        api: "NASA official procurement notices"
+        auth_required: false
+        access: public
+        rate_limit: "1 request per host per second"
+        latency_estimate: "minutes"
+        priority: P1
+        topics: [space, contracts, launch]
+        enabled: true
+        mvp_enabled: false
+
+  - id: shipping_chokepoints
+    name: "物流航运与地缘咽喉"
+    description: "Shipping routes, chokepoints, port disruption, canal restrictions, and geopolitical logistics risk."
+    tickers: [BDRY, SEA, ZIM, XLE, USO, UNG]
+    trigger_rules:
+      keywords: ["canal restriction", "port closure", "shipping delay", "chokepoint", "Red Sea", "Panama Canal"]
+      price_resonance: "Shipping or energy ETF move >= 3%, freight-index shock, or route-specific disruption."
+      escalation: "Escalate official chokepoint restrictions when confirmed by freight, energy, or shipping-equity resonance."
+    poll:
+      normal_seconds: 3600
+      event_window_seconds: 300
+    sources:
+      - name: "Panama Canal Authority notices"
+        tier: S0
+        type: official_notice
+        api: "Panama Canal official notices"
+        auth_required: false
+        access: public
+        rate_limit: "1 request per host per second"
+        latency_estimate: "hours"
+        priority: P1
+        topics: [panama_canal, shipping, drought]
+        enabled: true
+        mvp_enabled: false
+      - name: "Suez Canal Authority notices"
+        tier: S0
+        type: official_notice
+        api: "Suez Canal official notices"
+        auth_required: false
+        access: public
+        rate_limit: "1 request per host per second"
+        latency_estimate: "hours"
+        priority: P1
+        topics: [suez_canal, shipping, chokepoints]
+        enabled: true
+        mvp_enabled: false
+      - name: "GDELT shipping chokepoints monitor"
+        tier: S3
+        type: media_aggregate
+        api: "GDELT"
+        auth_required: false
+        access: public
+        rate_limit: "1 request per host per second"
+        latency_estimate: "minutes"
+        priority: P2
+        topics: [shipping, chokepoints, geopolitics]
+        enabled: true
+        mvp_enabled: true

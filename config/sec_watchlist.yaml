@@ -1,0 +1,18 @@
+version: 0.8h
+companies:
+  RKLB:
+    cik: "0001819994"
+    sector_group: space_defense
+    forms: ["8-K", "10-Q", "10-K", "424B5", "S-3", "S-1", "6-K", "13D", "13G", "4"]
+  IBKR:
+    cik: "0001381197"
+    sector_group: brokers_exchanges
+    forms: ["8-K", "10-Q", "10-K", "S-3", "13D", "13G", "4"]
+  NVDA:
+    cik: "0001045810"
+    sector_group: ai_semis
+    forms: ["8-K", "10-Q", "10-K", "S-3", "13D", "13G", "4"]
+  TSM:
+    cik: "0001046179"
+    sector_group: ai_semis
+    forms: ["6-K", "20-F", "F-3", "13D", "13G"]

@@ -1,0 +1,157 @@
+{
+  "version": "0.2",
+  "updated_at": "2026-06-07",
+  "source": "国际金融信息源泉与自动化监测蓝图.pdf",
+  "principle": "Pulse S0 official sources around release windows, use S1 news for speed, S2 market resonance for validation, and S3 social/alternative data only as budgeted clues.",
+  "sectors": [
+    {
+      "id": "global_equity_volatility",
+      "name": "全球权益与波动",
+      "impact_path": "risk beta, style rotation, leverage and volatility budget",
+      "priority_sources": ["Cboe", "Nasdaq Data Link", "HKEX OMD/IIS", "HKEX RSS", "FRED", "Google Trends", "GDELT", "X", "Reddit"],
+      "keywords": ["trading halt", "suspension", "rebalance", "profit warning", "buyback", "index review", "issuer news"],
+      "mapped_symbols": ["SPY", "QQQ", "VT", "EEM", "FXI", "KWEB", "EWJ", "EWG", "VIXY", "UVXY"],
+      "trigger_hint": "SPY/QQQ/VT/EEM 5-minute move above 1.2 sigma with VIX expansion above 8%, or local exchange notice plus local ETF resonance.",
+      "polling": {"S0": "15-60s market hours", "S1": "120s", "S2": "5-15s when market data is available", "S3": "300-600s"}
+    },
+    {
+      "id": "rates_central_banks",
+      "name": "主权利率与央行",
+      "impact_path": "discount rate, bank NII, FX, duration-sensitive growth stocks",
+      "priority_sources": ["Treasury", "Federal Reserve", "ECB", "BOJ", "HKMA", "BOK", "Bank of England", "FRED"],
+      "keywords": ["rate decision", "minutes", "balance sheet", "QE", "QT", "liquidity operation", "repo", "standing facility"],
+      "mapped_symbols": ["TLT", "IEF", "SHY", "BIL", "FLOT", "EUFN", "KRE", "FXY", "FXE"],
+      "trigger_hint": "Decision-window polling 30 minutes before and after events; official document plus rates move above 8bp can reach L2/L3.",
+      "polling": {"event_window": "15s", "normal_S0": "60-300s", "macro_support": "300s"}
+    },
+    {
+      "id": "fx_capital_flows",
+      "name": "外汇与资本流向",
+      "impact_path": "cross-asset anchor, EM risk, commodity/import cost, capital-control risk",
+      "priority_sources": ["CFETS", "China Foreign Exchange Trade System", "HKMA", "BIS", "IMF", "World Bank", "FRED"],
+      "keywords": ["central parity", "intervention", "capital controls", "reserve requirement", "FX swaps", "reserves"],
+      "mapped_symbols": ["UUP", "UDN", "FXY", "FXE", "CYB", "CEW", "EEM", "EWZ"],
+      "trigger_hint": "USD/CNH one-day move above 0.7%, DXY above 0.8%, or official reference-price gap above 1 sigma.",
+      "polling": {"S0": "60-300s", "S2": "15-60s", "S3": "300-600s"}
+    },
+    {
+      "id": "macro_calendar",
+      "name": "宏观数据与经济日历",
+      "impact_path": "macro surprise to rates, FX, equity sector rotation",
+      "priority_sources": ["BLS", "BEA", "FRED", "OECD", "IMF", "World Bank", "NBS China"],
+      "keywords": ["CPI", "PPI", "employment", "NFP", "GDP", "retail sales", "industrial production", "trade balance"],
+      "mapped_symbols": ["SPY", "QQQ", "TLT", "IEF", "UUP", "GLD", "XLY", "XLP", "EEM"],
+      "trigger_hint": "Calendar hit alone is not alert. Upgrade only after release surprise plus price resonance.",
+      "polling": {"pre_release": "15s", "post_release": "5-15s for 10 minutes", "normal": "300s"}
+    },
+    {
+      "id": "credit_liquidity",
+      "name": "信用与流动性",
+      "impact_path": "financial conditions, credit beta, bank stress, tail risk",
+      "priority_sources": ["HKMA", "ECB", "Treasury", "Federal Reserve H.15", "BIS", "Cboe credit indexes"],
+      "keywords": ["discount window", "term funding", "liquidity facility", "bank run", "deposit outflows", "funding stress"],
+      "mapped_symbols": ["HYG", "JNK", "LQD", "KRE", "KBE", "XLF"],
+      "trigger_hint": "KRE/KBE/XLF down above 3%, HYG/LQD ratio deterioration, or short-end funding rates jump above 20bp.",
+      "polling": {"S0": "60-300s", "S2": "15-60s", "S3": "300-600s"}
+    },
+    {
+      "id": "commodities_energy",
+      "name": "商品与能源",
+      "impact_path": "inflation, resource earnings, transport costs, policy expectations",
+      "priority_sources": ["EIA", "HKEX", "Cboe OVX/GVZ/VIX", "AISStream", "MarineTraffic", "Panama Canal", "Suez Canal Authority"],
+      "keywords": ["inventory", "SPR", "refinery outage", "pipeline", "storm", "LNG", "port congestion", "toll restriction"],
+      "mapped_symbols": ["XLE", "USO", "UNG", "GLD", "SLV", "COPX", "BDRY"],
+      "trigger_hint": "USO/XLE above 3%, UNG above 5%, GLD above 2%, OVX above 10%, plus EIA or transport disruption evidence.",
+      "polling": {"EIA_release": "pulse by calendar", "shipping_alt": "30-120s", "vol_indexes": "daily"}
+    },
+    {
+      "id": "regulatory_enforcement_rules",
+      "name": "监管执法与券商/交易所规则",
+      "impact_path": "single-name compliance discount, industry rerating, trading cost and platform risk",
+      "priority_sources": ["SEC", "CFTC", "FINRA", "Federal Register", "SFC", "HKEX", "CSRC"],
+      "keywords": ["settlement", "penalty", "cease-and-desist", "capital requirement", "consultation conclusions", "short selling", "margin", "best execution", "custody", "rulemaking"],
+      "mapped_symbols": ["HOOD", "IBKR", "FUTU", "TIGR", "SCHW", "CME", "ICE", "NDAQ", "HKEX"],
+      "trigger_hint": "S0 penalty/rule document starts at L1; material business impact plus price resonance is L2; multi-regulator or Federal Register finalization is L3.",
+      "polling": {"S0": "60-300s", "S1": "120s", "S2": "15-60s", "S3": "300-600s"}
+    },
+    {
+      "id": "issuer_filings_corporate_actions",
+      "name": "公司披露与企业行动",
+      "impact_path": "single-name event, read-through, capital flow, valuation reset",
+      "priority_sources": ["SEC EDGAR submissions", "SEC XBRL JSON", "SEC RSS", "HKEX IIS/OMD", "HKEX RSS", "TWSE MOPS"],
+      "keywords": ["8-K", "6-K", "10-Q", "10-K", "20-F", "guidance", "profit warning", "buyback", "offering", "13D", "13F"],
+      "mapped_symbols": ["single_names", "SOXX", "XLF", "KWEB", "XBI"],
+      "trigger_hint": "Original filing beats media. Social-only rumor stays L0/L1 until filing or price confirmation.",
+      "polling": {"SEC_HKEX": "30-60s", "MOPS": "60-180s", "price": "15-60s", "S3": "300s"}
+    },
+    {
+      "id": "ai_semis_export_control",
+      "name": "AI/半导体与出口管制",
+      "impact_path": "growth core holdings, supply-chain linkage, geopolitical constraint premium",
+      "priority_sources": ["BIS", "Federal Register", "NIST CHIPS", "SEMI", "SIA", "SEC", "HKEX", "TWSE MOPS"],
+      "keywords": ["advanced computing", "semiconductor manufacturing items", "BIS", "Entity List", "HBM", "EDA", "CHIPS", "export control"],
+      "mapped_symbols": ["NVDA", "AMD", "AVGO", "QCOM", "TSM", "ASML", "AMAT", "LRCX", "KLAC", "SKHY", "MU", "SOXX", "SMH"],
+      "trigger_hint": "BIS/Federal Register/NIST official item plus direct ticker or supply-chain map can reach L2/L3.",
+      "polling": {"S0": "60-300s", "S1": "120s", "S2": "15-60s", "S3": "300-600s"}
+    },
+    {
+      "id": "memory_storage_cycle",
+      "name": "存储器与数据基础设施周期",
+      "impact_path": "DRAM/NAND pricing, HBM capacity, data-center capex, inventory and margin cycle",
+      "priority_sources": ["SEC EDGAR", "SK hynix investor relations", "BIS", "Federal Register", "NIST CHIPS", "SEMI", "SIA", "JEDEC", "issuer investor relations"],
+      "keywords": ["SK hynix", "SKHY", "HBM", "DRAM", "NAND", "wafer capacity", "inventory correction", "average selling price", "data center storage", "export control"],
+      "mapped_symbols": ["SKHY", "MU", "WDC", "STX", "P", "LRCX", "AMAT", "SOXX", "SMH"],
+      "trigger_hint": "Issuer/industry evidence plus two or more memory/storage names or the semiconductor ETF moving together can reach L2; price alone stays L1.",
+      "polling": {"S0": "60-300s", "S1": "120s", "S2": "15-60s", "S3": "300-600s"}
+    },
+    {
+      "id": "gold_precious_metals",
+      "name": "黄金与贵金属",
+      "impact_path": "real yields, USD, inflation/tail hedge demand, miner operating leverage",
+      "priority_sources": ["Federal Reserve", "Treasury", "BLS", "CME Group", "World Gold Council", "SEC EDGAR", "issuer investor relations"],
+      "keywords": ["real yield", "inflation", "central bank purchases", "gold reserves", "mine guidance", "all-in sustaining cost", "geopolitical risk"],
+      "mapped_symbols": ["GLD", "IAU", "GDX", "GDXJ", "NEM", "AEM", "GC=F", "TLT", "UUP"],
+      "trigger_hint": "Require gold ETF/futures resonance and either rates/USD confirmation or official/issuer evidence for L2+.",
+      "polling": {"macro_window": "15-60s", "issuer_S0": "60-300s", "S2": "15-60s"}
+    },
+    {
+      "id": "us_market_breadth_style_rotation",
+      "name": "美股广度与风格轮动",
+      "impact_path": "index concentration, equal-weight breadth, small-cap/rate sensitivity, sector leadership and credit confirmation",
+      "priority_sources": ["Federal Reserve", "Treasury", "BLS", "BEA", "SEC", "Cboe", "NYSE", "Nasdaq"],
+      "keywords": ["market breadth", "equal weight", "small caps", "sector rotation", "credit spreads", "volatility", "index rebalance"],
+      "mapped_symbols": ["VOO", "SPY", "QQQM", "QQQ", "IWM", "DIA", "RSP", "XLK", "XLF", "XLE", "XLI", "XLY", "XLP", "XLV", "XLU", "XLC", "HYG", "TLT", "^VIX", "^TNX"],
+      "trigger_hint": "Use cross-sectional confirmation: cap-weight/equal-weight, small/large, sectors, credit and volatility. One ETF move alone remains L1.",
+      "polling": {"market_hours_S2": "15-60s", "S0": "60-300s", "event_window": "15s"}
+    },
+    {
+      "id": "government_contracts_defense_space_spectrum",
+      "name": "政府合同/国防航天/频谱",
+      "impact_path": "order visibility, backlog, spectrum winners/losers, procurement surprise",
+      "priority_sources": ["SAM.gov", "Defense Contracts", "NASA NAIS", "NASA Office of Procurement", "FCC ECFS"],
+      "keywords": ["award", "IDIQ", "task order", "RFP", "RFI", "launch services", "spectrum", "comment period", "notice id"],
+      "mapped_symbols": ["LMT", "NOC", "RTX", "LHX", "PLTR", "RKLB", "LUNR", "ASTS", "PL", "RDW", "XAR", "ITA", "BA", "IRDM", "VSAT"],
+      "trigger_hint": "Original tender/award document outranks press. News without contract or notice id cannot exceed L1.",
+      "polling": {"SAM": "300s", "Defense_NASA_FCC": "60-300s", "S2": "15-60s", "S3": "300s"}
+    },
+    {
+      "id": "logistics_shipping_geopolitical_chokepoints",
+      "name": "物流航运与地缘咽喉",
+      "impact_path": "freight rates, energy transport delay, insurance costs, supply-chain disruption",
+      "priority_sources": ["Panama Canal", "Suez Canal Authority", "AISStream", "MarineTraffic", "GDELT"],
+      "keywords": ["grounding", "collision", "traffic flowing normally", "draft restriction", "reservation slot", "convoy", "port closure"],
+      "mapped_symbols": ["BDRY", "SEA", "ZIM", "DAC", "GNK", "XLE", "USO"],
+      "trigger_hint": "Official notice/circular triggers L1. AIS congestion above 2 sigma plus BDRY/SEA/ZIM above 3-5% can reach L2/L3.",
+      "polling": {"official": "60-300s", "AIS": "30-120s", "S2": "15-60s", "S3": "300-600s"}
+    }
+  ],
+  "operational_controls": {
+    "dedupe_keys": ["source_url", "release_id", "notice_id", "issuer_cik", "symbol", "published_at"],
+    "record_metrics": ["freshness", "success_rate", "429_rate", "schema_drift_count"],
+    "cooldowns": {
+      "same_release_id": "one main alert",
+      "revision": "send only if revision=true and score remains L2+",
+      "portfolio_hit": "bypass normal cooldown once, then high-frequency monitor"
+    }
+  }
+}

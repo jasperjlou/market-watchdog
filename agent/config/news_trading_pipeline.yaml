@@ -1,0 +1,175 @@
+version: 0.1
+name: news_trading_agent_layer
+timezone: Asia/Shanghai
+
+runtime:
+  default_mode: dry_run
+  production_container_writes: false
+  recommended_runtime: sidecar
+  human_review_required: true
+  auto_order_allowed: false
+  trade_advice_allowed: true
+  order_ticket_drafts_allowed: true
+  cancel_replace_suggestions_allowed: true
+
+workers:
+  grok:
+    role: fast_news_and_alternative_signal_worker
+    command: grok
+    headless_args: ["--no-auto-update", "-p", "{prompt}", "--output-format", "json"]
+    best_for:
+      - breaking_news_sweep
+      - broad_media_scan
+      - social_or_alternative_signal_discovery
+      - contradiction_discovery
+    output_contract: schemas/worker_evidence.schema.json
+    allowed_write_dirs:
+      - /app/agent/runs
+    blocked_paths:
+      - /app/secrets
+      - /root
+      - /var/run/docker.sock
+
+  gemini:
+    role: google_official_source_and_deep_context_worker
+    command: agy
+    legacy_command: gemini
+    migration_note: "Google AI Pro/Ultra/free individual accounts should use Antigravity CLI (`agy`); Gemini CLI is retained only as a temporary compatibility fallback."
+    headless_args: ["-p", "{prompt}", "--print-timeout", "5m"]
+    best_for:
+      - official_source_research
+      - document_summarization
+      - company_context
+      - regulator_and_macro_context
+    output_contract: schemas/worker_evidence.schema.json
+    allowed_write_dirs:
+      - /app/agent/runs
+    blocked_paths:
+      - /app/secrets
+      - /root
+      - /var/run/docker.sock
+
+codex:
+  role: controller_and_analyst
+  responsibilities:
+    - build_worker_tasks
+    - validate_worker_json
+    - dedupe_and_score_evidence
+    - compute_kline_features
+    - merge_news_and_price_context
+    - write_draft_source_events
+    - enforce_risk_gates
+    - prepare_human_review_brief
+  allowed_write_dirs:
+    - /app/agent/runs
+    - /app/agent/state
+    - /app/reports
+  commit_gate:
+    source_events:
+      env: ALLOW_CODEX_SOURCE_EVENT_COMMIT
+      required_value: "1"
+
+source_tiers:
+  S0: official_primary
+  S1: official_or_quasi_official_market_data
+  S2: trusted_news_or_data_aggregator
+  S3: broad_media_social_or_alternative_signal
+
+scoring:
+  weights:
+    source_score: 0.35
+    price_score: 0.20
+    topic_score: 0.20
+    corroboration_score: 0.15
+    entity_score: 0.10
+  thresholds:
+    L0: 0.35
+    L1: 0.55
+    L2: 0.70
+    L3: 0.85
+    L4: 0.85
+  caps:
+    S3_only: L1
+  requirements:
+    L2:
+      - score_above_threshold
+      - official_source_or_price_resonance
+    L3:
+      - score_above_threshold
+      - official_confirmation
+      - strong_price_resonance_or_dual_official_confirmation
+    L4:
+      - hits_current_position_or_open_order
+      - or_L3_with_fresh_price_and_trade_ready_inputs
+      - actual_broker_write_still_forbidden
+
+outputs:
+  concise_alert_style: ultra_concise
+  allowed_actions:
+    - buy_recommendation
+    - sell_recommendation
+    - trim_recommendation
+    - exit_recommendation
+    - hedge_recommendation
+    - hold_or_wait
+    - cancel_order_suggestion
+    - replace_order_suggestion
+    - non_transmitting_order_ticket_draft
+  order_ticket_must_include:
+    - symbol
+    - side
+    - order_type
+    - sizing_basis
+    - limit_or_trigger_reference
+    - time_in_force
+    - reason
+    - invalidation
+    - transmit=false
+
+portfolio:
+  moomoo_snapshot_interval_seconds: 300
+  snapshot_path: /app/agent/state/moomoo_portfolio_snapshot_latest.json
+  include_open_orders: false
+  readonly_only: true
+
+hit_symbol_monitoring:
+  state_path: /app/agent/state/hit_symbols.json
+  kline_snapshot_path: /app/agent/state/kline_hit_symbols_latest.json
+  interval_seconds: 60
+  default_expiry_minutes: 90
+
+kline:
+  default_period: 6mo
+  default_interval: 1d
+  market_data_source: yfinance
+  market_data_tier: S2
+  features:
+    - close
+    - return_1d
+    - return_5d
+    - return_20d
+    - sma_20
+    - sma_60
+    - rsi_14
+    - atr_14_pct
+    - volume_z_20
+    - breakout_20d
+    - breakdown_20d
+    - trend_label
+
+promotion:
+  draft_path: /app/agent/state/source_events_draft.json
+  existing_source_events_path: /app/state/source_events.json
+  default_promote: false
+  manual_review: true
+
+blocked_actions:
+  - actual_broker_order_api_call
+  - actual_broker_cancel_api_call
+  - actual_broker_modify_api_call
+  - broker_transmit_true
+  - gmail_send
+  - wechat_send_from_worker
+  - docker_control_from_worker
+  - secret_read_from_worker
+  - ssh_from_worker

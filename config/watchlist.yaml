@@ -1,0 +1,491 @@
+version: 0.1
+items:
+  - symbol: VOO
+    name: "Vanguard S&P 500 ETF"
+    market: US
+    asset_type: ETF
+    role: core
+    priority: 1
+    themes: [US_equities, core_allocation]
+    watch_reasons: ["核心 ETF，长期分批配置"]
+    price_alerts: { enabled: true, resonance_only: true, no_intraday_signal: true }
+    event_alerts: [macro, rates, volatility, SEC_EDGAR]
+    min_level: L2
+    cooldown_min: 240
+    enabled: true
+
+  - symbol: QQQM
+    name: "Invesco NASDAQ 100 ETF"
+    market: US
+    asset_type: ETF
+    role: core
+    priority: 1
+    themes: [US_growth, AI, semiconductors]
+    watch_reasons: ["核心 ETF，科技成长暴露"]
+    price_alerts: { enabled: true, resonance_only: true, no_intraday_signal: true }
+    event_alerts: [AI, semiconductors, export_controls, rates]
+    min_level: L2
+    cooldown_min: 240
+    enabled: true
+
+  - symbol: FLJP
+    name: "Franklin FTSE Japan ETF"
+    market: US
+    asset_type: ETF
+    role: support
+    priority: 2
+    themes: [Japan, FX, regional_allocation]
+    watch_reasons: ["日本区域 ETF，观察 USDJPY 与日本政策"]
+    price_alerts: { enabled: true, resonance_only: true, no_intraday_signal: true }
+    event_alerts: [FX, central_bank, macro]
+    min_level: L2
+    cooldown_min: 360
+    enabled: true
+
+  - symbol: FLKR
+    name: "Franklin FTSE South Korea ETF"
+    market: US
+    asset_type: ETF
+    role: support
+    priority: 2
+    themes: [Korea, semiconductors, FX]
+    watch_reasons: ["韩国区域 ETF，观察 USDKRW 与半导体周期"]
+    price_alerts: { enabled: true, resonance_only: true, no_intraday_signal: true }
+    event_alerts: [FX, semiconductors, export_controls]
+    min_level: L2
+    cooldown_min: 360
+    enabled: true
+
+  - symbol: SGOV
+    name: "iShares 0-3 Month Treasury Bond ETF"
+    market: US
+    asset_type: ETF
+    role: cash_proxy
+    priority: 2
+    themes: [cash, short_duration_treasury]
+    watch_reasons: ["现金与短久期 Treasury 观察"]
+    price_alerts: { enabled: false, resonance_only: true, no_intraday_signal: true }
+    event_alerts: [rates, liquidity]
+    min_level: L1
+    cooldown_min: 720
+    enabled: true
+
+  - symbol: SPY
+    name: "SPDR S&P 500 ETF Trust"
+    market: US
+    asset_type: ETF
+    role: comparison_proxy
+    priority: 3
+    themes: [US_equities, benchmark]
+    watch_reasons: ["VOO 对比 ETF"]
+    price_alerts: { enabled: true, resonance_only: true, no_intraday_signal: true }
+    event_alerts: [market_resonance]
+    min_level: L1
+    cooldown_min: 360
+    enabled: true
+
+  - symbol: IVV
+    name: "iShares Core S&P 500 ETF"
+    market: US
+    asset_type: ETF
+    role: comparison_proxy
+    priority: 3
+    themes: [US_equities, benchmark]
+    watch_reasons: ["VOO 对比 ETF"]
+    price_alerts: { enabled: true, resonance_only: true, no_intraday_signal: true }
+    event_alerts: [market_resonance]
+    min_level: L1
+    cooldown_min: 360
+    enabled: true
+
+  - symbol: QQQ
+    name: "Invesco QQQ Trust"
+    market: US
+    asset_type: ETF
+    role: comparison_proxy
+    priority: 3
+    themes: [NASDAQ100, benchmark]
+    watch_reasons: ["QQQM 对比 ETF"]
+    price_alerts: { enabled: true, resonance_only: true, no_intraday_signal: true }
+    event_alerts: [market_resonance]
+    min_level: L1
+    cooldown_min: 360
+    enabled: true
+
+  - symbol: EWJ
+    name: "iShares MSCI Japan ETF"
+    market: US
+    asset_type: ETF
+    role: comparison_proxy
+    priority: 3
+    themes: [Japan, benchmark]
+    watch_reasons: ["FLJP 对比 ETF"]
+    price_alerts: { enabled: true, resonance_only: true, no_intraday_signal: true }
+    event_alerts: [regional_resonance]
+    min_level: L1
+    cooldown_min: 360
+    enabled: true
+
+  - symbol: EWY
+    name: "iShares MSCI South Korea ETF"
+    market: US
+    asset_type: ETF
+    role: comparison_proxy
+    priority: 3
+    themes: [Korea, benchmark]
+    watch_reasons: ["FLKR 对比 ETF"]
+    price_alerts: { enabled: true, resonance_only: true, no_intraday_signal: true }
+    event_alerts: [regional_resonance]
+    min_level: L1
+    cooldown_min: 360
+    enabled: true
+
+  - symbol: SMH
+    name: "VanEck Semiconductor ETF"
+    market: US
+    asset_type: ETF
+    role: comparison_proxy
+    priority: 2
+    themes: [semiconductors, AI]
+    watch_reasons: ["半导体主题共振观察"]
+    price_alerts: { enabled: true, resonance_only: true, no_intraday_signal: true }
+    event_alerts: [semiconductors, export_controls]
+    min_level: L1
+    cooldown_min: 240
+    enabled: true
+
+  - symbol: SOXX
+    name: "iShares Semiconductor ETF"
+    market: US
+    asset_type: ETF
+    role: comparison_proxy
+    priority: 2
+    themes: [semiconductors, AI]
+    watch_reasons: ["半导体主题共振观察"]
+    price_alerts: { enabled: true, resonance_only: true, no_intraday_signal: true }
+    event_alerts: [semiconductors, export_controls]
+    min_level: L1
+    cooldown_min: 240
+    enabled: true
+
+  - symbol: NVDA
+    name: "NVIDIA"
+    market: US
+    asset_type: stock
+    role: single_stock_watch
+    priority: 1
+    themes: [AI, GPU, semiconductors]
+    watch_reasons: ["AI 与半导体核心观察股，小额事件驱动测试"]
+    price_alerts: { enabled: true, resonance_only: true, no_intraday_signal: true }
+    event_alerts: [SEC_EDGAR, export_controls, earnings, supply_chain]
+    min_level: L2
+    cooldown_min: 240
+    enabled: true
+
+  - symbol: MSFT
+    name: "Microsoft"
+    market: US
+    asset_type: stock
+    role: single_stock_watch
+    priority: 1
+    themes: [AI, cloud]
+    watch_reasons: ["AI/cloud 平台事件观察"]
+    price_alerts: { enabled: true, resonance_only: true, no_intraday_signal: true }
+    event_alerts: [SEC_EDGAR, AI, cloud]
+    min_level: L2
+    cooldown_min: 240
+    enabled: true
+
+  - symbol: GOOG
+    name: "Alphabet"
+    market: US
+    asset_type: stock
+    role: single_stock_watch
+    priority: 1
+    themes: [AI, cloud, ads]
+    watch_reasons: ["AI/cloud 与监管事件观察"]
+    price_alerts: { enabled: true, resonance_only: true, no_intraday_signal: true }
+    event_alerts: [SEC_EDGAR, AI, regulation]
+    min_level: L2
+    cooldown_min: 240
+    enabled: true
+
+  - symbol: TSM
+    name: "Taiwan Semiconductor Manufacturing"
+    market: US
+    asset_type: ADR
+    role: single_stock_watch
+    priority: 1
+    themes: [semiconductors, Taiwan, supply_chain]
+    watch_reasons: ["先进制程、地缘与供应链观察"]
+    price_alerts: { enabled: true, resonance_only: true, no_intraday_signal: true }
+    event_alerts: [SEC_EDGAR, export_controls, geopolitics]
+    min_level: L2
+    cooldown_min: 240
+    enabled: true
+
+  - symbol: RKLB
+    name: "Rocket Lab"
+    market: US
+    asset_type: stock
+    role: single_stock_watch
+    priority: 2
+    themes: [space, defense, launch]
+    watch_reasons: ["space/defense 合同与任务事件观察"]
+    price_alerts: { enabled: true, resonance_only: true, no_intraday_signal: true }
+    event_alerts: [SAM.gov, Defense_Contracts, NASA, SEC_EDGAR]
+    min_level: L2
+    cooldown_min: 240
+    enabled: true
+
+  - symbol: SATS
+    name: "EchoStar"
+    market: US
+    asset_type: stock
+    role: single_stock_watch
+    priority: 2
+    themes: [satellite, spectrum, telecom]
+    watch_reasons: ["FCC spectrum 与卫星通信事件观察"]
+    price_alerts: { enabled: true, resonance_only: true, no_intraday_signal: true }
+    event_alerts: [FCC, SEC_EDGAR, spectrum]
+    min_level: L2
+    cooldown_min: 240
+    enabled: true
+
+  - symbol: ^VIX
+    name: "Cboe Volatility Index"
+    market: US
+    asset_type: index
+    role: macro_proxy
+    priority: 1
+    themes: [volatility, risk]
+    watch_reasons: ["全球风险偏好与组合风险观察"]
+    price_alerts: { enabled: true, resonance_only: true, no_intraday_signal: true }
+    event_alerts: [volatility_spike]
+    min_level: L1
+    cooldown_min: 120
+    enabled: true
+
+  - symbol: ^TNX
+    name: "10-Year Treasury Yield"
+    market: US
+    asset_type: rate_proxy
+    role: macro_proxy
+    priority: 1
+    themes: [rates, duration]
+    watch_reasons: ["美债收益率影响 ETF 估值与现金配置"]
+    price_alerts: { enabled: true, resonance_only: true, no_intraday_signal: true }
+    event_alerts: [rates_move, Fed]
+    min_level: L1
+    cooldown_min: 120
+    enabled: true
+
+  - symbol: USDHKD=X
+    name: "USD/HKD"
+    market: FX
+    asset_type: fx_pair
+    role: macro_proxy
+    priority: 1
+    themes: [FX, HKD_liquidity]
+    watch_reasons: ["HKD 资金与换汇观察"]
+    price_alerts: { enabled: true, resonance_only: true, no_intraday_signal: true }
+    event_alerts: [HKMA, liquidity]
+    min_level: L1
+    cooldown_min: 180
+    enabled: true
+
+  - symbol: USDJPY=X
+    name: "USD/JPY"
+    market: FX
+    asset_type: fx_pair
+    role: macro_proxy
+    priority: 2
+    themes: [Japan, FX]
+    watch_reasons: ["FLJP 与日本市场共振观察"]
+    price_alerts: { enabled: true, resonance_only: true, no_intraday_signal: true }
+    event_alerts: [BoJ, FX]
+    min_level: L1
+    cooldown_min: 180
+    enabled: true
+
+  - symbol: USDKRW=X
+    name: "USD/KRW"
+    market: FX
+    asset_type: fx_pair
+    role: macro_proxy
+    priority: 2
+    themes: [Korea, FX, semiconductors]
+    watch_reasons: ["FLKR 与韩国半导体周期共振观察"]
+    price_alerts: { enabled: true, resonance_only: true, no_intraday_signal: true }
+    event_alerts: [FX, Korea_macro]
+    min_level: L1
+    cooldown_min: 180
+    enabled: true
+
+  - symbol: MU
+    name: "Micron Technology"
+    market: US
+    asset_type: stock
+    role: theme_anchor
+    priority: 1
+    themes: [semiconductors, HBM, memory_storage]
+    watch_reasons: ["HBM、DRAM/NAND 价格和存储周期核心锚点"]
+    price_alerts: { enabled: true, resonance_only: true, no_intraday_signal: true }
+    event_alerts: [SEC_EDGAR, earnings, export_controls, memory_pricing]
+    min_level: L2
+    cooldown_min: 180
+    enabled: true
+
+  - symbol: SKHY
+    name: "SK hynix Inc. ADR"
+    market: US
+    asset_type: ADR
+    role: theme_anchor
+    priority: 1
+    themes: [semiconductors, HBM, DRAM, NAND, memory_storage, Korea]
+    watch_reasons: ["美国上市的 SK hynix ADR；HBM、DRAM/NAND、AI 内存与韩国半导体周期核心锚点；新上市样本不足时只给低置信度判断"]
+    price_alerts: { enabled: true, resonance_only: true, no_intraday_signal: true, new_listing_guard: true }
+    event_alerts: [SEC_EDGAR, issuer_IR, earnings, HBM, memory_pricing, export_controls, ADR_listing]
+    min_level: L2
+    cooldown_min: 180
+    enabled: true
+
+  - symbol: WDC
+    name: "Western Digital"
+    market: US
+    asset_type: stock
+    role: theme_anchor
+    priority: 2
+    themes: [NAND, data_storage]
+    watch_reasons: ["NAND 与数据存储周期观察"]
+    price_alerts: { enabled: true, resonance_only: true, no_intraday_signal: true }
+    event_alerts: [SEC_EDGAR, earnings, memory_pricing]
+    min_level: L2
+    cooldown_min: 240
+    enabled: true
+
+  - symbol: AMAT
+    name: "Applied Materials"
+    market: US
+    asset_type: stock
+    role: theme_anchor
+    priority: 2
+    themes: [semiconductor_equipment, foundry_capex]
+    watch_reasons: ["晶圆厂资本开支与设备周期观察"]
+    price_alerts: { enabled: true, resonance_only: true, no_intraday_signal: true }
+    event_alerts: [SEC_EDGAR, earnings, export_controls, CHIPS]
+    min_level: L2
+    cooldown_min: 240
+    enabled: true
+
+  - symbol: P
+    name: "Everpure (formerly Pure Storage)"
+    market: US
+    asset_type: stock
+    role: theme_anchor
+    priority: 2
+    themes: [enterprise_storage, data_management, AI_infrastructure]
+    watch_reasons: ["企业闪存、数据管理与 AI 基础设施需求观察；2026 年 4 月由 PSTG 更新为 NYSE:P"]
+    price_alerts: { enabled: true, resonance_only: true, no_intraday_signal: true }
+    event_alerts: [SEC_EDGAR, earnings, hyperscaler, storage_demand]
+    min_level: L2
+    cooldown_min: 240
+    enabled: true
+
+  - symbol: GLD
+    name: "SPDR Gold Shares"
+    market: US
+    asset_type: ETF
+    role: theme_anchor
+    priority: 1
+    themes: [gold, real_yields, risk_hedge]
+    watch_reasons: ["黄金、实际利率、美元和避险需求共振锚点"]
+    price_alerts: { enabled: true, resonance_only: true, no_intraday_signal: true }
+    event_alerts: [Fed, inflation, real_yields, geopolitics]
+    min_level: L1
+    cooldown_min: 180
+    enabled: true
+
+  - symbol: GDX
+    name: "VanEck Gold Miners ETF"
+    market: US
+    asset_type: ETF
+    role: theme_confirmation
+    priority: 2
+    themes: [gold_miners, operating_leverage]
+    watch_reasons: ["金矿股对金价和成本变化的高弹性确认"]
+    price_alerts: { enabled: true, resonance_only: true, no_intraday_signal: true }
+    event_alerts: [gold, issuer_guidance, mining_costs]
+    min_level: L1
+    cooldown_min: 240
+    enabled: true
+
+  - symbol: ASTS
+    name: "AST SpaceMobile"
+    market: US
+    asset_type: stock
+    role: theme_anchor
+    priority: 2
+    themes: [space, satellite, spectrum]
+    watch_reasons: ["卫星直连、频谱、发射和商业化里程碑观察"]
+    price_alerts: { enabled: true, resonance_only: true, no_intraday_signal: true }
+    event_alerts: [FCC, SEC_EDGAR, launch, government_contract]
+    min_level: L2
+    cooldown_min: 180
+    enabled: true
+
+  - symbol: LUNR
+    name: "Intuitive Machines"
+    market: US
+    asset_type: stock
+    role: theme_anchor
+    priority: 2
+    themes: [space, lunar, NASA]
+    watch_reasons: ["NASA 合同、月球任务和执行里程碑观察"]
+    price_alerts: { enabled: true, resonance_only: true, no_intraday_signal: true }
+    event_alerts: [NASA, SAM.gov, SEC_EDGAR, mission]
+    min_level: L2
+    cooldown_min: 180
+    enabled: true
+
+  - symbol: XAR
+    name: "SPDR S&P Aerospace & Defense ETF"
+    market: US
+    asset_type: ETF
+    role: theme_confirmation
+    priority: 2
+    themes: [aerospace, defense]
+    watch_reasons: ["航天与国防板块广度确认"]
+    price_alerts: { enabled: true, resonance_only: true, no_intraday_signal: true }
+    event_alerts: [Defense_Contracts, NASA, procurement]
+    min_level: L1
+    cooldown_min: 240
+    enabled: true
+
+  - symbol: IWM
+    name: "iShares Russell 2000 ETF"
+    market: US
+    asset_type: ETF
+    role: breadth_proxy
+    priority: 1
+    themes: [small_caps, rates, market_breadth]
+    watch_reasons: ["小盘股广度、融资环境与利率敏感度观察"]
+    price_alerts: { enabled: true, resonance_only: true, no_intraday_signal: true }
+    event_alerts: [rates, credit, market_breadth]
+    min_level: L1
+    cooldown_min: 180
+    enabled: true
+
+  - symbol: RSP
+    name: "Invesco S&P 500 Equal Weight ETF"
+    market: US
+    asset_type: ETF
+    role: breadth_proxy
+    priority: 1
+    themes: [equal_weight, market_breadth]
+    watch_reasons: ["与 SPY/VOO 对比判断上涨是否由少数权重股驱动"]
+    price_alerts: { enabled: true, resonance_only: true, no_intraday_signal: true }
+    event_alerts: [market_breadth, sector_rotation]
+    min_level: L1
+    cooldown_min: 180
+    enabled: true

@@ -1,0 +1,69 @@
+version: 1.0
+mode: moomoo_readonly_account_and_quotes
+actual_broker_writes: false
+
+selection:
+  priority: [moomoo, yfinance]
+  prefer_freshest: true
+  never_mix_unlabelled_latency: true
+  maximum_acceptable_age_seconds:
+    realtime: 90
+    delayed: 1800
+    near_realtime_aggregator: 900
+
+providers:
+  moomoo:
+    enabled: true
+    auto_detect: true
+    host: 127.0.0.1
+    host_env: MOOMOO_OPEND_HOST
+    port: 11111
+    port_env: MOOMOO_OPEND_PORT
+    connect_timeout_seconds: 2
+    max_batch_symbols: 300
+    python_module: moomoo
+    source_tier: S1
+    quote_method: get_market_snapshot
+    trade_context_allowed: readonly_position_queries_only
+    supported_symbol_kinds: [US_STOCK, US_ETF]
+
+  ibkr:
+    enabled: false
+    auto_detect: true
+    host: 127.0.0.1
+    host_env: IBKR_HOST
+    port: 4001
+    port_env: IBKR_PORT
+    connect_timeout_seconds: 3
+    client_id_base: 980
+    max_batch_symbols: 40
+    request_market_data_type: 3
+    source_tier: S1
+    readonly: true
+    allow_delayed_fallback: true
+    supported_symbol_kinds: [US_STOCK, US_ETF]
+    actual_broker_writes: false
+
+  yfinance:
+    enabled: true
+    max_batch_symbols: 80
+    source_tier: S2
+    latency_class: near_realtime_aggregator
+    fallback_only: true
+
+symbol_policy:
+  provider_exclusions:
+    moomoo: ["^VIX", "^TNX", "GC=F", "USDHKD=X", "USDJPY=X", "USDKRW=X"]
+  moomoo_prefix_by_market:
+    US: "US."
+  ibkr_defaults:
+    sec_type: STK
+    exchange: SMART
+    currency: USD
+
+safety:
+  account_queries: [get_acc_list, position_list_query]
+  trade_context_scope: readonly_positions_only
+  no_order_methods: true
+  no_credentials_in_config_or_state: true
+  every_quote_requires_source_and_collected_at: true

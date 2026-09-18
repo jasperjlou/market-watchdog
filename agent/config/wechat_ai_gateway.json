@@ -1,0 +1,59 @@
+{
+  "version": "0.3",
+  "updated_at": "2026-08-25",
+  "enabled": true,
+  "poll_interval_seconds": 10,
+  "inbox_path": "/app/state/wechat_official_inbox.jsonl",
+  "callback_state_path": "/app/state/wechat_official_callback_state.json",
+  "processed_state_path": "/app/agent/state/wechat_ai_gateway_state.json",
+  "query_inbox_path": "/var/lib/market-watchdog/codex-queries/inbox",
+  "query_outbox_path": "/var/lib/market-watchdog/codex-queries/outbox",
+  "query_archive_path": "/var/lib/market-watchdog/codex-queries/archive",
+  "latest_answer_path": "/app/agent/state/wechat_ai_latest_answer.json",
+  "provider": "codex",
+  "model": "gpt-5.5",
+  "fallback_provider": "deterministic_unavailable_notice",
+  "result_channel": "source_channel",
+  "same_channel_reply": true,
+  "telegram_reply_mode": "direct",
+  "wechat_reply_mode": "passive_result_cache",
+  "wechat_result_command": "结果",
+  "email_for_urgent": false,
+  "wechat_async_reply_enabled": false,
+  "execute_workers_default": true,
+  "message_style": "ultra_concise",
+  "controller": "deterministic_local_gate",
+  "workers": {
+    "news_or_social": ["google_antigravity"],
+    "official_or_filing": ["google_antigravity"],
+    "trade_or_authorization": ["codex", "google_antigravity"]
+  },
+  "intents": {
+    "market_question": ["怎么看", "分析", "新闻", "为什么", "what", "why", "news", "analyze"],
+    "trade_draft": ["买", "卖", "做多", "做空", "加仓", "减仓", "止损", "止盈", "撤单", "改单", "交易", "order", "buy", "sell", "cancel", "replace", "trim", "exit", "hedge"],
+    "trade_authorization": ["授权交易", "授权下单", "确认执行", "允许交易", "approve trade", "authorize trade"]
+  },
+  "trade_authorization_flow": {
+    "build_flow": true,
+    "actual_broker_write_enabled": false,
+    "required_future_gates": [
+      "explicit user authorization phrase",
+      "fresh Moomoo portfolio snapshot",
+      "risk precheck",
+      "order ticket transmit=false reviewed",
+      "separate broker-write gate"
+    ],
+    "current_allowed_outputs": [
+      "trade recommendation",
+      "non-transmitting order ticket draft",
+      "cancel/replace suggestion",
+      "authorization request record"
+    ],
+    "forbidden_now": [
+      "placeOrder",
+      "cancelOrder",
+      "modifyOrder",
+      "transmit=true"
+    ]
+  }
+}

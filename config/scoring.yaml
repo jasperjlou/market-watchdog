@@ -1,0 +1,73 @@
+version: 0.9-decision-v04
+decision_engine_version: "0.4"
+
+weights:
+  source_score: 0.35
+  price_score: 0.20
+  topic_score: 0.20
+  corroboration_score: 0.15
+  entity_score: 0.10
+
+source_scores:
+  S0: 1.00
+  S1: 0.75
+  S2: 0.55
+  S3: 0.25
+
+alert_thresholds:
+  L0: 0.35
+  L1: 0.55
+  L2: 0.70
+  L3: 0.85
+
+decision_weights:
+  alert_score: 0.45
+  insight_score: 0.12
+  execution_readiness_score: 0.10
+  risk_gate_score: 0.10
+  protection_score: 0.06
+  backtestability_score: 0.06
+  data_quality_score: 0.05
+  fundamental_score: 0.04
+  strategy_validation_score: 0.02
+
+decision_gates:
+  min_actionable_decision_score: 0.65
+  l4_requires:
+    - portfolio_or_open_order_hit
+    - fresh_evidence
+    - fresh_market_context
+    - no_hard_risk_halt
+    - no_active_protection_lock
+    - no_unresolved_contradiction
+  order_ticket_draft_requires:
+    - alert_level_l3_or_l4
+    - decision_score_at_least_0_65
+    - fresh_evidence
+    - fresh_market_context
+    - all_risk_gates_clear
+  actual_broker_writes: false
+
+freshness_policy:
+  fresh_minutes: 60
+  aging_minutes: 1440
+  stale_after_minutes: 1440
+  missing_invalid_or_future_timestamp: unverified
+  stale_or_unverified_action: downgrade_and_block_order_ticket_draft
+
+corroboration_policy:
+  canonicalize_urls: true
+  ignore_url_query_and_fragment: true
+  canonicalize_topic_order: true
+  duplicate_url_counts_once: true
+  dual_official_min_unique_sources: 2
+  official_source_tiers: [S0, S1]
+
+contradiction_policy:
+  unresolved_max_alert_level: L1
+  unresolved_order_ticket_draft_allowed: false
+
+gating_rules:
+  L2: "requires score >= 0.70 and at least S0/S1 or obvious price resonance."
+  L3: "requires score >= 0.85 and S0 + strong price resonance or dual official confirmation."
+  S3_only: "cannot exceed L1 unless later confirmed by S0/S1/S2 resonance."

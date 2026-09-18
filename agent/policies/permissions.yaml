@@ -1,0 +1,74 @@
+version: 0.1
+policy_name: market_watchdog_agent_permissions
+
+global:
+  human_review_required: true
+  auto_order_allowed: false
+  real_money_action_allowed: false
+  worker_secret_access_allowed: false
+
+paths:
+  allowed_read:
+    - /app/config
+    - /app/docs
+    - /app/agent
+    - /app/state/source_events.json
+    - /app/state/alert_candidates.json
+  allowed_write:
+    - /app/agent/runs
+    - /app/agent/state
+    - /app/reports
+  blocked_read:
+    - /app/secrets
+    - /root
+    - /home
+    - /var/run/docker.sock
+    - /root/Jts
+  blocked_write:
+    - /app/secrets
+    - /root
+    - /var/run/docker.sock
+    - /app/scripts
+    - /app/tools
+
+workers:
+  grok:
+    can_access_network: true
+    can_run_shell: false
+    can_write_production_state: false
+    can_send_messages: false
+    can_access_broker: false
+    output_format: worker_evidence_json
+  gemini:
+    can_access_network: true
+    can_run_shell: false
+    can_write_production_state: false
+    can_send_messages: false
+    can_access_broker: false
+    output_format: worker_evidence_json
+
+codex:
+  can_validate_evidence: true
+  can_analyze_kline: true
+  can_write_drafts: true
+  can_commit_source_events:
+    env: ALLOW_CODEX_SOURCE_EVENT_COMMIT
+    required_value: "1"
+  can_send_messages: false
+  can_place_orders: false
+
+forbidden_patterns:
+  - /app/secrets
+  - runtime_env
+  - gmail_token
+  - WECHAT_APP_SECRET
+  - IBKR
+  - placeOrder
+  - cancelOrder
+  - transmit=True
+  - docker rm
+  - docker stop
+  - sudo
+  - curl -fsSL
+  - curl | bash
+  - wget | bash

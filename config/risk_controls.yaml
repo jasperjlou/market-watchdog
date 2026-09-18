@@ -1,0 +1,16 @@
+version: v1.2-dangerous-integrations-pack
+global_kill_switch: false
+live_order_allowed: false
+real_money_action_allowed: false
+broker_connect_allowed: false
+gmail_send_allowed: false
+wechat_real_send_allowed: false
+max_paper_order_notional_usd: 300
+max_daily_paper_loss_usd: 50
+max_pending_alerts: 50
+alert_cooldown_minutes: 60
+blocked_symbols: []
+required_trade_disclaimer:
+  - 系统不自动下单
+  - 仅供人工复核
+  - 请你在券商端人工确认

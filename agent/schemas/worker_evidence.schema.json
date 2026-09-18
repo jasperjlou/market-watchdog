@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Market Watchdog Worker Evidence",
+  "type": "object",
+  "required": ["version", "worker", "mode", "collected_at", "items"],
+  "additionalProperties": true,
+  "properties": {
+    "version": {
+      "type": "string"
+    },
+    "worker": {
+      "type": "string",
+      "enum": ["grok", "gemini", "manual", "codex"]
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["news", "official_research", "verification", "kline_context", "mixed"]
+    },
+    "collected_at": {
+      "type": "string"
+    },
+    "task": {
+      "type": "string"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "title",
+          "source_name",
+          "source_tier",
+          "symbols",
+          "summary",
+          "confidence"
+        ],
+        "additionalProperties": true,
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "source_id": {
+            "type": "string"
+          },
+          "source_name": {
+            "type": "string"
+          },
+          "source_tier": {
+            "type": "string",
+            "enum": ["S0", "S1", "S2", "S3"]
+          },
+          "published_at": {
+            "type": "string"
+          },
+          "collected_at": {
+            "type": "string"
+          },
+          "symbols": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "entities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "topics": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "summary": {
+            "type": "string"
+          },
+          "evidence_text": {
+            "type": "string"
+          },
+          "why_it_matters": {
+            "type": "string"
+          },
+          "direction": {
+            "type": "string",
+            "enum": ["bullish", "bearish", "neutral", "mixed"]
+          },
+          "impact_horizon": {
+            "type": "string",
+            "enum": ["immediate", "1_5d", "2_6w", "long_term", "unspecified"]
+          },
+          "limitations": {
+            "type": "string"
+          },
+          "confidence": {
+            "type": "string",
+            "enum": ["low", "medium", "high"]
+          },
+          "trade_instruction": {
+            "type": "boolean",
+            "const": false
+          }
+        }
+      }
+    }
+  }
+}

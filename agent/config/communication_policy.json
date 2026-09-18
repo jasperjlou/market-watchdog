@@ -1,0 +1,178 @@
+{
+  "version": "0.5",
+  "updated_at": "2026-08-25",
+  "communication_enabled": false,
+  "default_mode": "queued_and_gated",
+  "human_review_required": true,
+  "worker_direct_send_allowed": false,
+  "auto_external_send_allowed": false,
+  "auto_send_batch_limit": 5,
+  "combined_channels": [
+    "telegram"
+  ],
+  "channel_roles": {
+    "gmail": {
+      "outbound_only": ["daily_brief", "weekly_brief"],
+      "interactive": false
+    },
+    "telegram": {
+      "outbound_only": ["market_review_L2", "market_review_L3", "market_review_L4", "portfolio_hit"],
+      "interactive": "same_channel_direct_reply"
+    },
+    "wechat": {
+      "outbound_only": [],
+      "interactive": "signed_inbound_passive_reply",
+      "async_result_command": "结果",
+      "proactive_send": false
+    }
+  },
+  "channels": {
+    "gmail": {
+      "enabled": false,
+      "auto_enable_when_ready": false,
+      "activation_state": "disabled_in_public_template",
+      "default_delivery": "draft_or_gated_send",
+      "connector_profile_state": "/app/agent/state/external_authorizations/gmail_connector_profile.json",
+      "container_token_path": "/app/secrets/gmail_token.json",
+      "send_script": "/app/scripts/gmail_real_sender.py",
+      "required_gates_for_real_send": [
+        "ALLOW_GMAIL_SEND=1",
+        "MARKET_WATCHDOG_GMAIL_ALLOW_SEND=1",
+        "communication_gateway --allow-send"
+      ],
+      "draft_preferred": true,
+      "allowed_kinds": ["daily_brief", "weekly_brief"],
+      "max_messages_per_hour": 4,
+      "max_messages_per_day": 20,
+      "cooldown_seconds": 600
+    },
+    "wechat": {
+      "enabled": false,
+      "auto_enable_when_ready": false,
+      "activation_state": "disabled_in_public_template",
+      "retained_for_rollback": true,
+      "default_delivery": "callback_reply_or_gated_official_send",
+      "callback_script": "/app/scripts/wechat_official_callback_receiver.py",
+      "official_send_script": "/app/scripts/wechat_official_sender.py",
+      "required_gates_for_real_send": [
+        "ALLOW_WECHAT_OFFICIAL_SEND=1",
+        "MARKET_WATCHDOG_WECHAT_ALLOW_SEND=1",
+        "communication_gateway --allow-send"
+      ],
+      "allowed_kinds": [],
+      "max_messages_per_hour": 6,
+      "max_messages_per_day": 30,
+      "cooldown_seconds": 300,
+      "known_manual_condition": "The current personal unverified Official Account returns 48001 for customer-message sends. Keep signed inbound callback replies, but suppress proactive sends until an account with that API permission is connected."
+    },
+    "whatsapp": {
+      "enabled": false,
+      "auto_enable_when_ready": false,
+      "activation_state": "disabled_in_public_template",
+      "default_delivery": "gated_official_cloud_api_template",
+      "send_script": "/app/scripts/whatsapp_cloud_sender.py",
+      "required_gates_for_real_send": [
+        "ALLOW_WHATSAPP_SEND=1",
+        "MARKET_WATCHDOG_WHATSAPP_ALLOW_SEND=1",
+        "communication_gateway --allow-send"
+      ],
+      "required_configuration": [
+        "WHATSAPP_ACCESS_TOKEN",
+        "WHATSAPP_PHONE_NUMBER_ID",
+        "WHATSAPP_RECIPIENT",
+        "WHATSAPP_TEMPLATE_NAME"
+      ],
+      "allowed_kinds": [],
+      "template_language_default": "zh_CN",
+      "max_messages_per_hour": 6,
+      "max_messages_per_day": 30,
+      "cooldown_seconds": 300,
+      "official_cloud_api_only": true
+    },
+    "telegram": {
+      "enabled": false,
+      "auto_enable_when_ready": false,
+      "activation_state": "disabled_in_public_template",
+      "default_delivery": "gated_official_bot_api",
+      "send_script": "/app/scripts/telegram_bot_sender.py",
+      "required_gates_for_real_send": [
+        "ALLOW_TELEGRAM_SEND=1",
+        "MARKET_WATCHDOG_TELEGRAM_ALLOW_SEND=1",
+        "communication_gateway --allow-send"
+      ],
+      "required_configuration": [
+        "TELEGRAM_BOT_TOKEN",
+        "TELEGRAM_CHAT_ID"
+      ],
+      "allowed_kinds": [
+        "market_review_L2",
+        "market_review_L3",
+        "market_review_L4",
+        "portfolio_hit",
+        "wechat_ai_reply"
+      ],
+      "max_messages_per_hour": 8,
+      "max_messages_per_day": 40,
+      "cooldown_seconds": 300,
+      "official_bot_api_only": true
+    }
+  },
+  "allowed_message_kinds": [
+    "startup_manual_action",
+    "system_health",
+    "authorization_needed",
+    "market_review_L2",
+    "market_review_L3",
+    "market_review_L4",
+    "portfolio_hit",
+    "portfolio_snapshot",
+    "trade_recommendation",
+    "order_ticket_draft",
+    "cancel_replace_suggestion",
+    "wechat_ai_reply",
+    "trade_authorization_request",
+    "risk_precheck",
+    "daily_brief",
+    "weekly_brief",
+    "error_alert"
+  ],
+  "blocked_content": [
+    "broker_transmit",
+    "credential_value",
+    "raw_secret",
+    "actual_broker_api_call",
+    "unreviewed_worker_output"
+  ],
+  "message_style": {
+    "user_alerts": "ultra_concise",
+    "max_self_facing_lines": 3,
+    "urgent_alert_contract": ["相关事件说明", "价格趋势", "操作建议"],
+    "urgent_alert_max_chars": 220,
+    "daily_report_max_chars": 900,
+    "weekly_report_max_chars": 1100,
+    "routing": {
+      "system_health": "internal_only",
+      "daily_brief": "gmail",
+      "weekly_brief": "gmail",
+      "market_review_L2": "telegram",
+      "market_review_L3": "telegram",
+      "market_review_L4": "telegram",
+      "portfolio_hit": "telegram"
+    },
+    "include_only": [
+      "level",
+      "symbol",
+      "event",
+      "impact",
+      "action",
+      "order_draft",
+      "next_check"
+    ]
+  },
+  "trade_advice_allowed": true,
+  "order_ticket_drafts_allowed": true,
+  "cancel_replace_suggestions_allowed": true,
+  "actual_broker_writes_allowed": false,
+  "append_safety_tag": true,
+  "required_disclaimer": "人工确认"
+}

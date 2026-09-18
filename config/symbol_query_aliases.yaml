@@ -1,0 +1,155 @@
+version: 1.0
+max_results: 12
+
+# Only plain ticker-like words from the configured market universe are accepted.
+# Explicit forms such as $PLTR and US.PLTR remain available for ad-hoc symbols.
+ignored_tokens: [AI, API, CPI, CURRENT, ETF, FOMC, GDP, IPO, NEWS, PRICE, SEC, THE, USD]
+
+relationship_terms:
+  - 相关
+  - 相关股票
+  - 相关公司
+  - 同板块
+  - 同行业
+  - 同行
+  - 产业链
+  - 上下游
+  - peers
+  - peer companies
+  - related stocks
+  - related companies
+
+# English issuer names from watchlist.yaml are loaded automatically. This map
+# supplies Chinese/common names and issuer names for symbols that are only in
+# the rotating scan policy.
+symbol_aliases:
+  NVDA: [英伟达, 英偉達, 辉达, 輝達, NVIDIA Corporation]
+  AMD: [超威半导体, 超威半導體, 超微半导体, 超微半導體, Advanced Micro Devices]
+  AVGO: [博通, Broadcom]
+  QCOM: [高通, Qualcomm]
+  TSM: [台积电, 台積電, 台湾积体电路, 台灣積體電路, TSMC]
+  ASML: [阿斯麦, 阿斯麥, 艾司摩尔, 艾司摩爾, ASML Holding]
+  AMAT: [应用材料, 應用材料, Applied Materials]
+  LRCX: [泛林, 泛林集团, 泛林集團, Lam Research]
+  KLAC: [科磊, KLA, KLA Corporation]
+  MU: [美光, 美光科技, Micron, Micron Technology]
+  SKHY: [海力士, SK海力士, SK hynix, SK hynix ADR]
+  WDC: [西部数据, 西部數據, Western Digital]
+  STX: [希捷, 希捷科技, Seagate, Seagate Technology]
+  P: [纯存储, 純存儲, Pure Storage, Everpure]
+
+  AAPL: [苹果, 蘋果, Apple, Apple Inc]
+  MSFT: [微软, 微軟, Microsoft, Microsoft Corporation]
+  GOOG: [谷歌, Alphabet, Google]
+  AMZN: [亚马逊, 亞馬遜, Amazon, Amazon.com]
+  META: [脸书, 臉書, Facebook, Meta Platforms]
+  TSLA: [特斯拉, Tesla]
+
+  GLD: [黄金ETF, 黃金ETF, SPDR Gold Shares]
+  IAU: [iShares Gold Trust, 安硕黄金信托, 安碩黃金信託]
+  GDX: [金矿ETF, 金礦ETF, VanEck Gold Miners ETF]
+  GDXJ: [小型金矿ETF, 小型金礦ETF, VanEck Junior Gold Miners ETF]
+  NEM: [纽蒙特, 紐蒙特, Newmont]
+  AEM: [阿格尼科鹰矿业, 阿格尼科鷹礦業, Agnico Eagle Mines]
+  "GC=F": [纽约黄金期货, 紐約黃金期貨, COMEX Gold Futures]
+
+  RKLB: [火箭实验室, 火箭實驗室, Rocket Lab]
+  ASTS: [太空移动, 太空移動, AST SpaceMobile]
+  LUNR: [直觉机器, 直覺機器, Intuitive Machines]
+  PL: [行星实验室, 行星實驗室, Planet Labs]
+  RDW: [红线公司, 紅線公司, Redwire]
+  BA: [波音, Boeing]
+  LMT: [洛克希德马丁, 洛克希德馬丁, Lockheed Martin]
+  NOC: [诺斯罗普格鲁曼, 諾斯羅普格魯曼, Northrop Grumman]
+  RTX: [雷神, 雷神技术, 雷神技術, RTX Corporation, Raytheon]
+  ITA: [美国航空航天与国防ETF, 美國航空航天與國防ETF, iShares US Aerospace and Defense ETF]
+  XAR: [标普航天国防ETF, 標普航天國防ETF, SPDR Aerospace and Defense ETF]
+
+  SMH: [半导体ETF, 半導體ETF, VanEck Semiconductor ETF]
+  SOXX: [安硕半导体ETF, 安碩半導體ETF, iShares Semiconductor ETF]
+  VOO: [先锋标普500ETF, 先鋒標普500ETF, Vanguard S&P 500 ETF]
+  SPY: [SPDR标普500ETF, SPDR標普500ETF, SPDR S&P 500 ETF]
+  IVV: [安硕标普500ETF, 安碩標普500ETF, iShares Core S&P 500 ETF]
+  QQQ: [Invesco QQQ Trust]
+  QQQM: [Invesco NASDAQ 100 ETF]
+  IWM: [罗素2000ETF, 羅素2000ETF, iShares Russell 2000 ETF]
+  RSP: [标普500等权ETF, 標普500等權ETF, Invesco S&P 500 Equal Weight ETF]
+  "^VIX": [恐慌指数, 恐慌指數, 波动率指数, 波動率指數, Cboe Volatility Index]
+  "^TNX": [美国十年期国债收益率, 美國十年期國債收益率, 10-Year Treasury Yield]
+
+theme_aliases:
+  broad_market:
+    - 美股
+    - 美股大盘
+    - 美股大盤
+    - 大盘
+    - 大盤
+    - 整体市场
+    - 整體市場
+    - 市场广度
+    - 市場廣度
+    - broad market
+    - market breadth
+  semiconductors:
+    - 半导体
+    - 半導體
+    - 芯片
+    - 晶片
+    - 芯片板块
+    - 晶片板塊
+    - semiconductor sector
+    - semiconductor stocks
+    - chip sector
+    - chip stocks
+  memory_storage:
+    - 存储行业
+    - 儲存行業
+    - 存储板块
+    - 儲存板塊
+    - 内存行业
+    - 內存行業
+    - 内存板块
+    - 內存板塊
+    - 记忆体
+    - 記憶體
+    - HBM
+    - DRAM
+    - NAND
+    - memory sector
+    - memory stocks
+    - storage sector
+    - storage stocks
+  gold:
+    - 黄金
+    - 黃金
+    - 金矿
+    - 金礦
+    - 贵金属
+    - 貴金屬
+    - gold sector
+    - gold stocks
+    - gold miners
+    - precious metals
+  space_aerospace:
+    - 航天
+    - 航空航天
+    - 航空航太
+    - 太空板块
+    - 太空板塊
+    - 卫星板块
+    - 衛星板塊
+    - 火箭板块
+    - 火箭板塊
+    - space sector
+    - space stocks
+    - aerospace sector
+    - aerospace stocks
+  mega_cap_leaders:
+    - 科技巨头
+    - 科技巨頭
+    - 科技七巨头
+    - 科技七巨頭
+    - 美股七姐妹
+    - 七姐妹
+    - Magnificent Seven
+    - mega cap tech

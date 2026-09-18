@@ -1,0 +1,233 @@
+{
+  "version": "0.3",
+  "updated_at": "2026-06-07",
+  "purpose": "Fast news-to-action grading for market-watchdog.",
+  "source_tiers": {
+    "S0": {
+      "score": 1.0,
+      "meaning": "Official primary source, legal source, market infrastructure, issuer filing, regulator, exchange, government statistical release."
+    },
+    "S1": {
+      "score": 0.75,
+      "meaning": "Trusted newswire or high-authority industry source, not the original legal source."
+    },
+    "S2": {
+      "score": 0.55,
+      "meaning": "Market data, ETF/index/price/volume/volatility resonance, reputable data aggregator."
+    },
+    "S3": {
+      "score": 0.25,
+      "meaning": "Social, alternative data, rumor, search trend, forum, broad media clue."
+    }
+  },
+  "score_formula": {
+    "alert_score": "0.35*source_score + 0.20*price_score + 0.20*topic_score + 0.15*corroboration_score + 0.10*entity_score",
+    "decision_score": "0.45*alert_score + 0.12*insight_score + 0.10*execution_readiness_score + 0.10*risk_gate_score + 0.06*protection_score + 0.06*backtestability_score + 0.05*data_quality_score + 0.04*fundamental_score + 0.02*strategy_validation_score - hard_penalty",
+    "price_score": {
+      "0.0": "no price/volume/volatility resonance",
+      "0.4": "light resonance",
+      "0.7": "medium resonance",
+      "1.0": "strong cross-asset or same-name resonance"
+    },
+    "corroboration_score": {
+      "0.0": "single source",
+      "0.5": "two independent sources",
+      "1.0": "S0 plus S1, or S0 plus S2 resonance"
+    },
+    "entity_score": {
+      "0.0": "no known mapped entity",
+      "0.4": "sector ETF or broad macro exposure",
+      "0.7": "watchlist, key supplier/customer/peer, or core ETF constituent",
+      "1.0": "current holding, open order, direct issuer, or direct hedge"
+    },
+    "insight_score": {
+      "meaning": "Borrowed from LEAN-style Alpha Insight: direction, magnitude, confidence, and expiry must be explicit.",
+      "0.0": "no direction or no time horizon",
+      "0.4": "direction only",
+      "0.7": "direction plus catalyst horizon",
+      "1.0": "direction, horizon, magnitude/risk, and invalidation"
+    },
+    "execution_readiness_score": {
+      "meaning": "Order draft readiness, not permission to trade.",
+      "0.0": "no fresh price or position context",
+      "0.4": "fresh price only",
+      "0.7": "fresh price plus position/open-order state",
+      "1.0": "fresh price, liquidity, position/open-order, sizing basis, limit/trigger, TIF, transmit=false"
+    },
+    "risk_gate_score": {
+      "meaning": "Borrowed from Nautilus/LEAN risk-gate separation: risk can reduce or block the action even if alpha is strong.",
+      "0.0": "halted/blocked risk state or missing critical precheck for L4",
+      "0.5": "unknown or partial risk state",
+      "1.0": "risk state active, no hard lock, size and notional within configured bounds"
+    },
+    "protection_score": {
+      "meaning": "Borrowed from Freqtrade protections: cooldown, max drawdown, stoploss cluster, low-profit lock.",
+      "0.0": "pair/account locked by protection",
+      "0.4": "recent loss/cooldown warning",
+      "0.7": "no active lock but elevated caution",
+      "1.0": "no active protection warning"
+    },
+    "backtestability_score": {
+      "meaning": "Borrowed from Qlib/quant workflow: prefer signals that can later be audited or backtested.",
+      "0.0": "unstructured rumor or unreproducible signal",
+      "0.4": "event can be logged but lacks clean features",
+      "0.7": "event has source id, timestamp, ticker map, price window",
+      "1.0": "event has clean feature set, timestamp, comparable history, no obvious lookahead leakage"
+    },
+    "data_quality_score": {
+      "meaning": "Market-data quality layer inspired by yfinance/OpenBB routing: freshness, completeness, and source fit.",
+      "0.0": "no fresh data or missing timestamp",
+      "0.4": "one aggregator only, delayed or partial",
+      "0.7": "fresh yfinance/market snapshot with ticker and price window",
+      "1.0": "fresh market snapshot plus independent/provider or official corroboration"
+    },
+    "fundamental_score": {
+      "meaning": "Fundamental relevance layer for FinanceToolkit/OpenBB-style ratio and financial-statement checks.",
+      "0.0": "not fundamental or no financial context",
+      "0.4": "simple valuation/earnings clue only",
+      "0.7": "event linked to margins, balance sheet, cash flow, valuation, or capital structure",
+      "1.0": "fresh ratio/statement context confirms material fundamental impact"
+    },
+    "strategy_validation_score": {
+      "meaning": "Strategy-validation layer for vectorbt-style backtest, parameter, and drawdown checks.",
+      "0.0": "one-off discretionary event or no comparable history",
+      "0.4": "rule can be stated but has no validation",
+      "0.7": "comparable history or simple replay exists",
+      "1.0": "backtest/walk-forward/parameter robustness supports the rule"
+    }
+  },
+  "levels": {
+    "L0": {
+      "threshold": 0.35,
+      "name": "queue",
+      "send": false,
+      "use": "Store only. Dedupe, map entities, no push."
+    },
+    "L1": {
+      "threshold": 0.55,
+      "name": "scan",
+      "send": false,
+      "use": "Needs fast human skim or AI follow-up. One official source or one price anomaly."
+    },
+    "L2": {
+      "threshold": 0.7,
+      "name": "actionable_alert",
+      "send": true,
+      "requirements": [
+        "at least one S0/S1 source or strong price resonance",
+        "no hard risk/protection lock"
+      ],
+      "use": "Immediate concise alert with related names, reason, suggested stance, and next check."
+    },
+    "L3": {
+      "threshold": 0.85,
+      "name": "urgent_decision",
+      "send": true,
+      "requirements": [
+        "S0 plus strong price resonance, or two independent official confirmations",
+        "insight has direction and expiry",
+        "execution draft has fresh price context or is explicitly conditional",
+        "data_quality_score >= 0.7 unless explicitly marked conditional",
+        "fundamental-driven alerts require fundamental_score >= 0.7 or a pending deep-check tag",
+        "strategy-driven alerts require strategy_validation_score >= 0.7 or a one-off event tag"
+      ],
+      "use": "Urgent multi-channel alert; include trade recommendation, risk, invalidation, and order/cancel/replace draft if data is fresh."
+    },
+    "L4": {
+      "threshold": 0.85,
+      "name": "portfolio_hit_or_execution_draft",
+      "send": true,
+      "requirements": [
+        "hits current holding or open order",
+        "or event is L3 and has fresh price, liquidity, downside, and time-sensitive catalyst",
+        "risk gate not halted",
+        "protection lock does not forbid increasing exposure",
+        "fresh yfinance or equivalent market snapshot exists",
+        "if recommendation is based on a reusable rule, vectorbt-style validation is required before promoting it to persistent automation"
+      ],
+      "use": "Escalate to high-frequency monitoring. Output direct recommendation plus non-transmitting order ticket draft, cancel/replace suggestion, or hedge/trim/exit plan."
+    }
+  },
+  "level_adjustments": {
+    "s3_only_cap": "L1",
+    "current_holding_hit": "+1 level, capped at L4",
+    "open_order_hit": "+1 level, capped at L4",
+    "direct_regulatory_or_issuer_filing": "minimum L1",
+    "official_source_plus_price_resonance": "minimum L2",
+    "official_source_plus_holding_hit": "minimum L3",
+    "stale_or_unverified_timestamp": "-1 level",
+    "contradictory_primary_source": "hold at L1 until resolved"
+  },
+  "quant_review_layers": {
+    "inspired_by": {
+      "QuantConnect_LEAN": "Universe -> Alpha Insight -> Portfolio Target -> Risk -> Execution separation.",
+      "Freqtrade": "Protections such as cooldown, max drawdown, stoploss guard, low-profit locks.",
+      "NautilusTrader": "Pre-trade risk engine, trading state, throttled submit/modify, max notional checks.",
+      "Qlib": "Data -> feature -> model/backtest -> portfolio optimization -> order execution audit chain.",
+      "TradingAgents": "Analyst/researcher/trader/risk/PM debate before decision promotion."
+    },
+    "toolchain_layers": {
+      "yfinance": "Core hot-path S2 market data for price, K-line, batch tickers, options/news clues; required for L2+ market context.",
+      "OpenBB": "Optional research sidecar for provider-rich market/macro/screener expansion and AI-agent data surfaces.",
+      "FinanceToolkit": "Optional fundamental sidecar for ratio, quality, profitability, solvency, and valuation checks.",
+      "vectorbt": "Optional validation sidecar for vectorized backtests, parameter sweeps, drawdown, and walk-forward checks.",
+      "awesome-quant": "Reference index only; use to discover future modules, not as a runtime dependency."
+    },
+    "hard_blocks": [
+      "actual_broker_write_gate_disabled",
+      "risk_state_halted",
+      "protection_lock_active_for_increase_exposure",
+      "missing_position_snapshot_for_L4_holding_action",
+      "order_ticket_transmit_true",
+      "secret_or_credential_in_message"
+    ],
+    "action_modes": {
+      "green": "recommendation and order draft allowed",
+      "yellow": "recommendation allowed, order draft conditional",
+      "red": "only hold/wait/cancel-risk-reducing suggestions"
+    }
+  },
+  "required_output_by_level": {
+    "L2": [
+      "symbol/entity",
+      "one-line event",
+      "why it matters",
+      "related holdings/watchlist/peers",
+      "suggested stance",
+      "next check"
+    ],
+    "L3": [
+      "event",
+      "direct and second-order tickers",
+      "trade recommendation",
+      "risk and invalidation",
+      "order draft if fresh market data exists",
+      "cancel/replace suggestion if existing open orders are affected"
+    ],
+    "L4": [
+      "holding/open-order impact",
+      "action now",
+      "order ticket draft with transmit=false",
+      "cancel/replace/hedge/trim/exit choice",
+      "high-frequency monitor expiry",
+      "one-line reason"
+    ]
+  },
+  "actual_execution_policy": {
+    "trade_advice_allowed": true,
+    "order_ticket_drafts_allowed": true,
+    "cancel_replace_suggestions_allowed": true,
+    "actual_broker_write_allowed": false,
+    "order_ticket_must_include": [
+      "symbol",
+      "side",
+      "order_type",
+      "quantity_or_sizing_basis",
+      "limit_or_trigger_reference",
+      "time_in_force",
+      "reason",
+      "invalidation",
+      "transmit=false"
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+pyyaml
+yfinance
+requests
+feedparser
+python-dotenv
+markdown
+google-api-python-client
+google-auth
+google-auth-oauthlib
+google-auth-httplib2

@@ -1,0 +1,185 @@
+{
+  "version": "0.3",
+  "updated_at": "2026-06-07",
+  "objective": "React to market-moving news faster than broad market digestion while keeping actual broker writes gated.",
+  "latency_targets": {
+    "S3_or_newswire_candidate_to_first_pass": "180s",
+    "S0_official_candidate_to_first_pass": "300s",
+    "L2_to_concise_alert": "60s after Codex fusion",
+    "L3_L4_to_concise_alert": "30s after Codex fusion",
+    "holding_hit_to_high_frequency_monitor": "immediate"
+  },
+  "reaction_chain": [
+    "normalize_event",
+    "dedupe_release_or_cluster",
+    "map_direct_entities",
+    "map_second_order_entities",
+    "check_current_positions_and_open_orders",
+    "check_price_volume_volatility_resonance_with_readonly_provider_router",
+    "score_L_level",
+    "score_decision_quality_with_insight_risk_protection_execution_data_fundamental_validation",
+    "ask_grok_for_fast_news_social_contradiction",
+    "ask_google_antigravity_for_official_or_deep_context",
+    "optional_openbb_or_financetoolkit_deep_check_for_L3_L4",
+    "optional_vectorbt_validation_for_persistent_rules",
+    "codex_fusion_and_red_team",
+    "write_concise_alert_or_queue",
+    "if_L4_write_order_draft_and_hit_symbol_state"
+  ],
+  "entity_mapping": {
+    "must_include": [
+      "current holdings",
+      "open orders",
+      "watchlist",
+      "suppliers",
+      "customers",
+      "competitors",
+      "sector ETFs",
+      "index/ETF constituents",
+      "regulators",
+      "contracting agencies",
+      "shipping/geography nodes"
+    ],
+    "direct_hit": "issuer, regulator action target, contract awardee, filing company, named security",
+    "second_order_hit": "supplier/customer/competitor/sector ETF/peer/index constituent"
+  },
+  "market_anomaly_triggers": {
+    "single_name": {
+      "intraday_return_abs_sigma": 2.0,
+      "volume_z_20": 3.0,
+      "gap_abs_pct": 4.0,
+      "breakout_or_breakdown_20d": true
+    },
+    "holding_or_open_order": {
+      "intraday_return_abs_sigma": 1.2,
+      "volume_z_20": 2.0,
+      "gap_abs_pct": 2.5,
+      "escalate_level": "+1"
+    },
+    "sector_etf": {
+      "five_min_move_abs_sigma": 1.2,
+      "sector_pair_divergence_sigma": 2.0,
+      "volatility_expansion_pct": 8.0
+    },
+    "macro_cross_asset": {
+      "rates_move_bp": 8,
+      "fx_move_pct": 0.7,
+      "credit_etf_move_pct": 1.5,
+      "bank_etf_move_pct": 3.0
+    }
+  },
+  "position_refresh": {
+    "moomoo_snapshot_interval_seconds": 300,
+    "write_latest": "/app/agent/state/moomoo_portfolio_snapshot_latest.json",
+    "include_open_orders": false,
+    "readonly_only": true
+  },
+  "hit_symbol_monitoring": {
+    "state_path": "/app/agent/state/hit_symbols.json",
+    "interval_seconds": 60,
+    "default_expiry_minutes": 90,
+    "extend_on_new_L2_plus": true,
+    "monitor_fields": ["5m price", "5m volume", "daily trend", "news follow-up", "open-order relevance"],
+    "exit_monitor_when": [
+      "expires_at passed",
+      "price and news stabilize below L2 for two checks",
+      "user clears symbol"
+    ]
+  },
+  "codex_output_template": {
+    "style": "ultra_concise",
+    "max_lines": 8,
+    "fields": [
+      "L级 + symbol",
+      "事件",
+      "关系: direct/second-order/holding/open-order",
+      "影响: bull/bear/mixed + 1 reason",
+      "建议: buy/sell/trim/exit/hedge/hold/wait/cancel/replace",
+      "订单草稿: side type qty limit/tif transmit=false",
+      "失效条件",
+      "下次检查"
+    ]
+  },
+  "order_draft_rules": {
+    "allowed": true,
+    "actual_submit": false,
+    "minimum_level": "L3",
+    "fresh_data_required": ["latest price timestamp", "liquidity or volume context", "position/open-order state if relevant"],
+    "draft_actions": ["buy", "sell", "trim", "exit", "hedge", "cancel", "replace", "hold"],
+    "forbidden": ["placeOrder()", "cancelOrder()", "modifyOrder()", "transmit=true", "credential values"]
+  },
+  "quant_review_standard": {
+    "inspired_by": ["QuantConnect LEAN", "Freqtrade", "NautilusTrader", "Qlib", "TradingAgents"],
+    "must_score": [
+      "alert_score",
+      "decision_score",
+      "insight_score",
+      "execution_readiness_score",
+      "risk_gate_score",
+      "protection_score",
+      "backtestability_score",
+      "data_quality_score",
+      "fundamental_score",
+      "strategy_validation_score"
+    ],
+    "hard_blocks": [
+      "risk_state_halted",
+      "active_protection_lock_for_increasing_exposure",
+      "missing_position_snapshot_for_holding_action",
+      "transmit=true",
+      "broker_write_gate_disabled"
+    ]
+  },
+  "quant_toolchain": {
+    "hot_path": {
+      "readonly_market_data_router": {
+        "role": "Moomoo OpenD preferred snapshots, then yfinance K-line/volume fallback",
+        "trigger": ["every L2+", "holding hit", "open-order hit", "scheduled anomaly scan"],
+        "max_delay_seconds": 60,
+        "feeds": ["price_score", "data_quality_score", "execution_readiness_score"],
+        "required_metadata": ["source", "collected_at", "provider_update_time", "market_data_type", "delayed", "readonly"],
+        "safety": ["position queries are read-only", "no order methods", "no broker write", "price-only evidence cannot exceed L1"]
+      }
+    },
+    "deep_path": {
+      "OpenBB": {
+        "role": "multi-provider market/macro/screener research sidecar",
+        "trigger": ["L3/L4", "broad market scan", "official/provider cross-check needed"],
+        "not_required_for_startup": true
+      },
+      "FinanceToolkit": {
+        "role": "fundamental ratios and statement quality",
+        "trigger": ["earnings/margin/balance-sheet/valuation/capital-structure event", "holding deep review"],
+        "not_required_for_startup": true
+      },
+      "vectorbt": {
+        "role": "backtest/parameter/drawdown/walk-forward validation",
+        "trigger": ["persistent strategy proposal", "post-alert audit", "strategy-derived L3/L4"],
+        "not_required_for_startup": true
+      }
+    },
+    "reference_only": {
+      "awesome-quant": "Use as a discovery map for future quant modules, not a live dependency."
+    }
+  },
+  "worker_coordination": {
+    "grok": {
+      "role": "fast breaking/news/social/contradiction sweep",
+      "trigger": ["new candidate", "price anomaly", "holding hit", "user request"],
+      "market_hours_min_interval_seconds": 300,
+      "portfolio_hit_min_interval_seconds": 60
+    },
+    "google_antigravity": {
+      "role": "official source, filings, regulator, long-context verification",
+      "trigger": ["S0/S1 event", "L2+", "Codex asks for disconfirmation"],
+      "market_hours_min_interval_seconds": 900,
+      "portfolio_hit_min_interval_seconds": 180
+    },
+    "codex": {
+      "role": "fusion, risk gate, action recommendation, concise alert",
+      "trigger": ["every candidate after worker evidence", "scheduled fusion", "manual request"],
+      "market_hours_min_interval_seconds": 300,
+      "portfolio_hit_min_interval_seconds": 60
+    }
+  }
+}

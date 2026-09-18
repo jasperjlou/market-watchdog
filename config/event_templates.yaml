@@ -1,0 +1,211 @@
+version: "0.8d"
+template_version: "0.8d-event-action-cn-1"
+event_types:
+  financing_offering:
+    chinese_name: "融资/发行"
+    default_direction: "偏空"
+    countercase: "现金改善"
+    typical_affected_assets:
+      - "发行主体"
+      - "高融资依赖同类小盘股"
+      - "相关行业观察池"
+    action_candidates:
+      - "做空复核"
+      - "反向做多复核"
+      - "不操作"
+    recommended_action: "做空复核，不自动下单"
+    main_checks:
+      - "发行规模"
+      - "发行价格"
+      - "证券类型"
+      - "稀释结构"
+      - "资金用途"
+      - "价格是否已被消息消化"
+      - "成交量是否确认"
+    default_sizing:
+      L2: "200-300 USD or 0.5%-1.0% overseas investable capital"
+      L3: "urgent manual review, still no automatic order"
+  regulatory_enforcement:
+    chinese_name: "监管处罚"
+    default_direction: "偏空"
+    countercase: "处罚轻于预期"
+    typical_affected_assets:
+      - "被处罚主体"
+      - "同业券商/金融平台"
+      - "合规更强的竞品"
+    action_candidates:
+      - "做空受罚主体复核"
+      - "做多竞品复核"
+      - "配对交易复核"
+      - "不操作"
+    recommended_action: "做空受罚主体复核，不自动下单"
+    main_checks:
+      - "处罚主体是否为上市主体"
+      - "是否影响牌照"
+      - "是否影响客户资产"
+      - "是否影响交易或出入金"
+      - "是否影响核心业务收入"
+      - "是否只是小额常规罚款"
+      - "竞品是否同样受监管风险影响"
+    default_sizing:
+      L2: "小额人工复核，不自动下单"
+      L3: "紧急人工复核，仍不自动下单"
+  export_control:
+    chinese_name: "出口管制"
+    default_direction: "偏空"
+    countercase: "影响范围小于预期"
+    typical_affected_assets:
+      - "受限产品链条"
+      - "半导体 ETF"
+      - "AI 硬件链条"
+      - "替代受益方"
+    action_candidates:
+      - "做空受限链条复核"
+      - "做空半导体 ETF 复核"
+      - "做多替代受益方复核"
+      - "不操作"
+    recommended_action: "做空受限链条复核，不自动下单"
+    main_checks:
+      - "受限产品"
+      - "受限地区"
+      - "受影响收入占比"
+      - "是否有替代市场"
+      - "板块是否共振"
+      - "官方文件是否确认"
+    default_sizing:
+      L2: "小额人工复核，不自动下单"
+      L3: "紧急人工复核，仍不自动下单"
+  government_contract:
+    chinese_name: "政府合同"
+    default_direction: "偏多"
+    countercase: "合同金额小或已被价格消化"
+    typical_affected_assets:
+      - "中标公司"
+      - "国防/航天相关标的"
+      - "同类供应链"
+    action_candidates:
+      - "做多复核"
+      - "不追高"
+      - "配对交易复核"
+      - "不操作"
+    recommended_action: "做多复核，不自动下单"
+    main_checks:
+      - "合同金额"
+      - "合同期限"
+      - "是否为新增收入"
+      - "是否为已有合同延续"
+      - "毛利率和执行风险"
+      - "股价是否已大涨"
+    default_sizing:
+      L2: "小额人工复核，不自动下单"
+      L3: "紧急人工复核，仍不自动下单"
+  license_spectrum:
+    chinese_name: "牌照/频谱"
+    default_direction: "混合"
+    countercase: "条款限制较多"
+    typical_affected_assets:
+      - "获牌主体"
+      - "卫星通信/通信服务标的"
+      - "竞品"
+    action_candidates:
+      - "做多复核"
+      - "做空竞品复核"
+      - "不操作"
+    recommended_action: "做多或竞品做空复核，不自动下单"
+    main_checks:
+      - "牌照/频谱范围"
+      - "生效日期"
+      - "商业化路径"
+      - "是否带来收入"
+      - "是否已有价格反应"
+      - "是否仍有监管限制"
+    default_sizing:
+      L2: "小额人工复核，不自动下单"
+      L3: "紧急人工复核，仍不自动下单"
+  earnings_guidance:
+    chinese_name: "财报/业绩指引"
+    default_direction: "混合"
+    countercase: "一次性因素"
+    typical_affected_assets:
+      - "发布财报公司"
+      - "同业可比公司"
+      - "所属板块 ETF"
+    action_candidates:
+      - "做多复核"
+      - "做空复核"
+      - "不操作"
+    recommended_action: "多空方向复核，不自动下单"
+    main_checks:
+      - "营收"
+      - "利润"
+      - "指引"
+      - "现金流"
+      - "毛利率"
+      - "管理层说明"
+      - "价格是否已反映"
+    default_sizing:
+      L2: "小额人工复核，不自动下单"
+      L3: "紧急人工复核，仍不自动下单"
+  macro_rate:
+    chinese_name: "宏观利率"
+    default_direction: "混合"
+    countercase: "市场已充分消化"
+    typical_affected_assets:
+      - "成长股"
+      - "科技 ETF"
+      - "短债/现金类资产"
+      - "美元相关资产"
+    action_candidates:
+      - "科技风险复核"
+      - "现金/短债防守复核"
+      - "不操作"
+    recommended_action: "风险敞口复核，不自动下单"
+    main_checks:
+      - "利率变化幅度"
+      - "通胀数据"
+      - "美联储表态"
+      - "VIX 是否共振"
+      - "成长股是否同步承压"
+      - "现金收益率是否变化"
+    default_sizing:
+      L2: "小额人工复核，不自动下单"
+      L3: "紧急人工复核，仍不自动下单"
+  sector_resonance:
+    chinese_name: "板块共振"
+    default_direction: "混合"
+    countercase: "个股噪声"
+    typical_affected_assets:
+      - "板块 ETF"
+      - "领涨/领跌核心股"
+      - "相关供应链"
+    action_candidates:
+      - "板块做多复核"
+      - "板块做空复核"
+      - "个股相对强弱复核"
+      - "不操作"
+    recommended_action: "板块方向复核，不自动下单"
+    main_checks:
+      - "是否至少 2-3 个核心标的同步异动"
+      - "ETF 是否确认"
+      - "成交量是否放大"
+      - "是否有共同信息源"
+      - "是否只是个股孤立事件"
+    default_sizing:
+      L2: "小额人工复核，不自动下单"
+      L3: "紧急人工复核，仍不自动下单"
+  unknown_event:
+    chinese_name: "未分类事件"
+    default_direction: "观望"
+    countercase: "证据不足"
+    typical_affected_assets:
+      - "暂无"
+    action_candidates:
+      - "观望"
+      - "不操作"
+    recommended_action: "不操作"
+    main_checks:
+      - "等待更多证据"
+      - "不根据单一弱信号交易"
+    default_sizing:
+      L2: "不操作，不给出仓位建议"
+      L3: "不操作，不给出仓位建议"

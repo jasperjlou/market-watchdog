@@ -1,0 +1,96 @@
+version: 1.0
+timezone: America/New_York
+positioning: "可解释的概率趋势分析、主题新闻归因、每日结论与紧急风险提醒；不承诺确定收益，不自动下单"
+
+horizons:
+  short_term: "1-5 trading days"
+  swing: "2-6 weeks"
+
+daily_brief:
+  enabled: true
+  hour_et: 16
+  minute_et: 40
+  weekdays_only: true
+  channel: gmail
+  max_symbols_per_section: 4
+  max_news_items: 2
+  max_body_chars: 900
+
+weekly_brief:
+  enabled: true
+  weekday_et: 4
+  hour_et: 17
+  minute_et: 10
+  channel: gmail
+  max_symbols_per_section: 4
+  max_news_items: 2
+  max_body_chars: 1100
+
+notifications:
+  system_health: internal_only
+  l2_min_risk_score: 65
+  l2_min_abs_move_pct: 8.0
+  l2_risk_move_floor_pct: 5.0
+  l2_channel: telegram
+  higher_level_channel: telegram
+  resolution_min_level: L3
+
+news:
+  proactive_enabled: true
+  lookback_hours: 168
+  decay_half_life_hours: 36
+  source_weights: { S0: 1.0, S1: 0.8, S2: 0.45, S3: 0.2 }
+  confidence_weights: { high: 1.0, medium: 0.7, low: 0.4 }
+  market_hours_research_interval_seconds: 1800
+  off_hours_research_interval_seconds: 7200
+  market_hours_feed_interval_seconds: 900
+  off_hours_feed_interval_seconds: 3600
+
+scoring:
+  short_term_weights:
+    trend_structure: 0.30
+    momentum: 0.25
+    relative_strength: 0.15
+    theme_breadth: 0.10
+    verified_news: 0.20
+  swing_weights:
+    trend_structure: 0.35
+    momentum: 0.20
+    relative_strength: 0.15
+    theme_breadth: 0.10
+    verified_news: 0.20
+  stable_score_threshold: 0.25
+  watch_score_threshold: 0.38
+  minimum_history_bars: 20
+  reliable_swing_history_bars: 60
+
+risk:
+  high_risk_score: 70
+  elevated_risk_score: 45
+  atr_high_pct: 5.0
+  atr_extreme_pct: 8.0
+  overbought_rsi: 75
+  oversold_rsi: 25
+  portfolio_profit_review_pct: 15.0
+  portfolio_loss_review_pct: -8.0
+
+emergency:
+  dedupe_minutes: 30
+  warning_chamber_ttl_trading_days: 3
+  renotify_move_delta_pct: 5.0
+  renotify_only_on: [severity_upgrade, direction_flip, material_worsening, new_material_evidence, portfolio_threshold, scheduled_close_review, resolution]
+  confirmation_window_minutes: 20
+  single_stock_immediate_move_pct: 8.0
+  core_or_etf_immediate_move_pct: 3.0
+  single_stock_confirmed_move_pct: 5.0
+  core_or_etf_confirmed_move_pct: 2.0
+  new_listing_immediate_move_pct: 15.0
+  require_strong_resonance_for_price_only_L2: true
+  symbol_threshold_overrides:
+    "^VIX": { immediate_move_pct: 10.0, confirmed_move_pct: 6.0 }
+    "^TNX": { immediate_move_pct: 5.0, confirmed_move_pct: 3.0 }
+    "USDJPY=X": { immediate_move_pct: 2.0, confirmed_move_pct: 1.0 }
+    "USDKRW=X": { immediate_move_pct: 2.0, confirmed_move_pct: 1.0 }
+    "USDHKD=X": { immediate_move_pct: 0.35, confirmed_move_pct: 0.15 }
+    "GC=F": { immediate_move_pct: 3.0, confirmed_move_pct: 2.0 }
+  actual_broker_writes: false

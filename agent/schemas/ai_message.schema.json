@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Market Watchdog AI Message",
+  "type": "object",
+  "required": [
+    "version",
+    "message_id",
+    "run_id",
+    "created_at",
+    "sender",
+    "recipient",
+    "message_type",
+    "status",
+    "task",
+    "blocked_actions_confirmed"
+  ],
+  "properties": {
+    "version": {
+      "type": "string"
+    },
+    "message_id": {
+      "type": "string"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "parent_message_id": {
+      "type": ["string", "null"]
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "sender": {
+      "enum": ["codex", "google_antigravity", "grok", "system"]
+    },
+    "recipient": {
+      "enum": ["codex", "google_antigravity", "grok", "all"]
+    },
+    "message_type": {
+      "enum": ["task", "evidence", "challenge", "fusion", "heartbeat", "refusal", "summary"]
+    },
+    "status": {
+      "enum": ["queued", "running", "completed", "refused_by_policy", "timeout", "needs_human_review"]
+    },
+    "symbols": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "topic": {
+      "type": "string"
+    },
+    "task": {
+      "type": "string"
+    },
+    "requested_skill_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "source_tier": {
+      "enum": ["S0", "S1", "S2", "S3", "not_applicable"]
+    },
+    "confidence": {
+      "enum": ["low", "medium", "high", "not_applicable"]
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["title", "url_or_id", "source_tier"],
+        "properties": {
+          "title": {"type": "string"},
+          "url_or_id": {"type": "string"},
+          "source_tier": {"enum": ["S0", "S1", "S2", "S3"]},
+          "published_at": {"type": ["string", "null"]},
+          "limitations": {"type": "string"}
+        }
+      }
+    },
+    "payload": {
+      "type": "object"
+    },
+    "next_actions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "blocked_actions_confirmed": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": true
+}

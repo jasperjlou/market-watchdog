@@ -1,0 +1,132 @@
+version: 1.0
+timezone: America/New_York
+mode: layered_event_driven
+
+tiers:
+  core:
+    interval_seconds: 300
+    period: 6mo
+    interval: 1d
+    symbols: [VOO, QQQM, SPY, IVV, QQQ, IWM, DIA, RSP, SGOV, TLT, HYG, "^VIX", "^TNX"]
+  themes:
+    interval_seconds: 300
+    period: 6mo
+    interval: 1d
+    symbols:
+      - SMH
+      - SOXX
+      - NVDA
+      - AMD
+      - AVGO
+      - QCOM
+      - TSM
+      - ASML
+      - AMAT
+      - LRCX
+      - KLAC
+      - SKHY
+      - MU
+      - WDC
+      - STX
+      - P
+      - GLD
+      - IAU
+      - GDX
+      - GDXJ
+      - NEM
+      - AEM
+      - "GC=F"
+      - RKLB
+      - ASTS
+      - LUNR
+      - PL
+      - RDW
+      - XAR
+      - ITA
+      - BA
+      - LMT
+      - NOC
+      - RTX
+  context:
+    interval_seconds: 1800
+    period: 6mo
+    interval: 1d
+    symbols:
+      - AAPL
+      - MSFT
+      - GOOG
+      - AMZN
+      - META
+      - TSLA
+      - XLK
+      - XLF
+      - XLE
+      - XLI
+      - XLY
+      - XLP
+      - XLV
+      - XLU
+      - XLC
+      - FLJP
+      - EWJ
+      - "USDJPY=X"
+      - FLKR
+      - EWY
+      - "USDKRW=X"
+      - "USDHKD=X"
+
+theme_baskets:
+  broad_market:
+    symbols: [VOO, QQQM, SPY, QQQ, IWM, DIA, RSP, "^VIX", "^TNX", TLT, HYG]
+    minimum_confirming_symbols: 3
+    median_move_threshold_pct: 1.0
+    price_only_max_level: L1
+  semiconductors:
+    symbols: [SMH, SOXX, NVDA, AMD, AVGO, QCOM, TSM, ASML, AMAT, LRCX, KLAC, SKHY, MU]
+    minimum_confirming_symbols: 3
+    median_move_threshold_pct: 1.5
+    price_only_max_level: L1
+  memory_storage:
+    symbols: [SKHY, MU, WDC, STX, P]
+    minimum_confirming_symbols: 2
+    median_move_threshold_pct: 2.0
+    price_only_max_level: L1
+  gold:
+    symbols: [GLD, IAU, GDX, GDXJ, NEM, AEM, "GC=F"]
+    minimum_confirming_symbols: 2
+    median_move_threshold_pct: 1.0
+    price_only_max_level: L1
+  space_aerospace:
+    symbols: [RKLB, ASTS, LUNR, PL, RDW, XAR, ITA, BA, LMT, NOC, RTX]
+    minimum_confirming_symbols: 3
+    median_move_threshold_pct: 2.0
+    price_only_max_level: L1
+  mega_cap_leaders:
+    symbols: [AAPL, MSFT, GOOG, AMZN, META, TSLA, QQQ, QQQM]
+    minimum_confirming_symbols: 3
+    median_move_threshold_pct: 1.2
+    price_only_max_level: L1
+
+anomaly_rules:
+  single_symbol:
+    absolute_1d_move_pct: 4.0
+    volume_z_20: 3.0
+    breakout_or_breakdown_20d: true
+  core_or_etf:
+    absolute_1d_move_pct: 1.5
+    volume_z_20: 2.5
+  active_hit:
+    interval_seconds: 60
+    expiry_minutes: 90
+  escalation:
+    price_only_max_level: L1
+    require_news_or_official_confirmation_for_L2: true
+    require_official_or_dual_confirmation_for_L3: true
+    anomaly_worker_cooldown_minutes: 60
+    max_worker_triggers_per_cycle: 4
+    max_worker_triggers_per_hour: 4
+
+coordinator:
+  core_symbols_each_run: 13
+  rotating_theme_symbols_each_run: 12
+  maximum_symbols_per_run: 24

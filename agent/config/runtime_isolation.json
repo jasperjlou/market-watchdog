@@ -1,0 +1,31 @@
+{
+  "version": "1.0",
+  "updated_at": "2026-07-19",
+  "startup_required_checks": [
+    "market_data_router"
+  ],
+  "startup_optional_checks": [
+    "moomoo_opend",
+    "antigravity",
+    "gmail",
+    "whatsapp",
+    "wechat",
+    "telegram"
+  ],
+  "required_ports": [],
+  "required_processes": [],
+  "optional_services": [
+    "moomoo_opend",
+    "vnc",
+    "novnc",
+    "xvfb",
+    "x11vnc",
+    "websockify",
+    "wechat_callback"
+  ],
+  "principles": [
+    "Broker and GUI outages must not stop market-data, AI, retention, or messaging loops.",
+    "Provider failures must be reported without exposing credentials or raw provider output.",
+    "Untrusted AI fallback summaries must never authorize source deletion."
+  ]
+}

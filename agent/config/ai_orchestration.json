@@ -1,0 +1,275 @@
+{
+  "version": "0.2",
+  "updated_at": "2026-08-14",
+  "name": "market_watchdog_ai_orchestration",
+  "timezone": "Asia/Shanghai",
+  "default_mode": "google_on_demand_human_review_required",
+  "principles": [
+    "The deterministic local pipeline is the controller and risk gate.",
+    "Google Gemini is the only permitted AI provider and runs on demand after a qualified trigger.",
+    "Workers communicate through structured run artifacts, not direct secret sharing.",
+    "No AI worker may trade, send external messages, read secrets, or control Docker."
+  ],
+  "agents": {
+    "codex": {
+      "enabled": false,
+      "disabled_reason": "google_only_runtime_no_background_codex",
+      "interactive_queries_enabled": true,
+      "interactive_model": "gpt-5.5",
+      "gpt_5_6_chatgpt_status": "unsupported_by_current_chatgpt_codex_login",
+      "role": "manual_maintenance_and_isolated_user_queries_only",
+      "backend": "gpt_codex",
+      "model": "gpt-5.6",
+      "fallback_models": ["gpt-5.5"],
+      "activation": {
+        "mode": "always_on_when_user_or_scheduler_invokes",
+        "cooldown_seconds": 0,
+        "timeout_seconds": 300
+      },
+      "capabilities": [
+        "task_decomposition",
+        "skill_selection",
+        "worker_prompting",
+        "evidence_validation",
+        "contradiction_checking",
+        "kline_feature_review",
+        "moomoo_position_snapshot_review",
+        "L4_portfolio_hit_escalation",
+        "trade_recommendation_drafting",
+        "order_cancel_replace_ticket_drafting",
+        "risk_gate",
+        "human_review_brief"
+      ],
+      "blocked_actions": [
+        "auto_trade_without_explicit_user_gate",
+        "print_secrets",
+        "worker_secret_delegation"
+      ]
+    },
+    "google_antigravity": {
+      "enabled": false,
+      "disabled_reason": "disabled_in_public_template",
+      "network_route": "isolated_local_warp_proxy",
+      "role": "only_ai_provider_for_grounded_research_and_review",
+      "backend": "agy",
+      "legacy_backend": "disabled_no_api_or_gemini_cli_fallback",
+      "quota_policy": {
+        "subscription": "Google AI Pro",
+        "subscription_baseline_only": true,
+        "ai_credits_enabled": false,
+        "overage_policy": "never"
+      },
+      "models": {
+        "fast": "gemini-3.7-flash-low",
+        "research": "gemini-3.7-flash-low",
+        "deep": "gemini-3.7-flash-low"
+      },
+      "activation": {
+        "market_hours_min_interval_seconds": 900,
+        "off_hours_min_interval_seconds": 3600,
+        "per_symbol_cooldown_seconds": 900,
+        "timeout_seconds": 300
+      },
+      "best_for": [
+        "official_filings",
+        "earnings_documents",
+        "company_and_regulator_sources",
+        "long_context_synthesis",
+        "deep_thesis_disconfirmation",
+        "supply_chain_mapping",
+        "official_confirmation_for_L2_plus"
+      ],
+      "trigger_when": [
+        "deterministic_pipeline_confirms_candidate_signal_L2_or_above",
+        "official_source_event_detected",
+        "earnings_or_filing_window",
+        "deterministic_controller_requests_disconfirmation",
+        "daily_deep_research_snapshot"
+      ],
+      "blocked_actions": [
+        "actual_broker_order_api_call",
+        "actual_broker_cancel_api_call",
+        "actual_broker_modify_api_call",
+        "broker_transmit_true",
+        "gmail_send",
+        "wechat_send",
+        "secret_read"
+      ]
+    },
+    "grok": {
+      "enabled": false,
+      "disabled_reason": "google_only_runtime_grok_removed",
+      "role": "disabled_legacy_provider",
+      "backend": "grok",
+      "model": "grok-4.5",
+      "fast_model": "grok-composer-2.5-fast",
+      "activation": {
+        "market_hours_min_interval_seconds": 300,
+        "off_hours_min_interval_seconds": 1800,
+        "per_symbol_cooldown_seconds": 300,
+        "timeout_seconds": 180
+      },
+      "best_for": [
+        "breaking_news_sweep",
+        "x_social_narrative_scan",
+        "broad_media_scan",
+        "alternative_signal_discovery",
+        "contradiction_and_rumor_check",
+        "fast_related_ticker_mapping"
+      ],
+      "trigger_when": [
+        "market_open_scan",
+        "watchlist_price_or_volume_alert",
+        "user_ad_hoc_research_request",
+        "new_social_or_news_cluster",
+        "codex_requests_fast_contradiction_check"
+      ],
+      "blocked_actions": [
+        "actual_broker_order_api_call",
+        "actual_broker_cancel_api_call",
+        "actual_broker_modify_api_call",
+        "broker_transmit_true",
+        "gmail_send",
+        "wechat_send",
+        "secret_read"
+      ]
+    }
+  },
+  "activation_policy": {
+    "market_hours": {
+      "timezone": "America/New_York",
+      "regular_session": "09:30-16:00",
+      "pre_market": "04:00-09:30",
+      "after_hours": "16:00-20:00"
+    },
+    "cadence": {
+      "watchlist_light_scan": {
+        "workers": [],
+        "market_hours_interval_seconds": 300,
+        "off_hours_interval_seconds": 1800,
+        "purpose": "deterministic price and source-feed discovery; no AI call"
+      },
+      "candidate_deep_check": {
+        "workers": ["google_antigravity"],
+        "market_hours_interval_seconds": 900,
+        "off_hours_interval_seconds": 3600,
+        "purpose": "verify candidates with official and high-trust sources"
+      },
+      "codex_fusion": {
+        "workers": [],
+        "market_hours_interval_seconds": 300,
+        "off_hours_interval_seconds": 1800,
+        "purpose": "deterministic local evidence merge and risk gates"
+      },
+      "moomoo_portfolio_snapshot": {
+        "workers": [],
+        "interval_seconds": 300,
+        "purpose": "refresh read-only Moomoo positions for portfolio-hit escalation"
+      },
+      "portfolio_hit_high_frequency": {
+        "workers": ["google_antigravity"],
+        "interval_seconds": 60,
+        "default_expiry_minutes": 90,
+        "purpose": "after an alert hits holdings or open orders, keep a short high-frequency watch on news and K-line movement"
+      },
+      "daily_research_brief": {
+        "workers": ["google_antigravity"],
+        "scheduled_times_local": ["16:40"],
+        "timezone": "America/New_York",
+        "purpose": "post-close watchlist and outlook review brief"
+      }
+    },
+    "event_triggers": {
+      "breaking_news": {
+        "first_worker": "google_antigravity",
+        "confirm_worker": "independent_source_evidence",
+        "controller": "deterministic_local_gate",
+        "max_first_response_seconds": 180,
+        "max_confirmation_seconds": 300
+      },
+      "official_filing_or_earnings": {
+        "first_worker": "google_antigravity",
+        "confirm_worker": "independent_source_evidence",
+        "controller": "deterministic_local_gate",
+        "max_first_response_seconds": 300,
+        "max_confirmation_seconds": 180
+      },
+      "price_volume_anomaly": {
+        "first_worker": "google_antigravity",
+        "confirm_worker": "independent_source_evidence",
+        "controller": "deterministic_local_gate",
+        "max_first_response_seconds": 180,
+        "max_confirmation_seconds": 300
+      },
+      "portfolio_hit": {
+        "first_worker": "google_antigravity",
+        "confirm_worker": "independent_source_evidence",
+        "controller": "deterministic_local_gate",
+        "max_first_response_seconds": 60,
+        "max_confirmation_seconds": 180,
+        "outputs_allowed": ["trade_recommendation", "order_ticket_draft", "cancel_replace_suggestion"],
+        "actual_broker_writes": false
+      },
+      "wechat_message": {
+        "first_worker": "google_antigravity",
+        "confirm_worker": "deterministic_local_gate",
+        "controller": "deterministic_local_gate",
+        "max_first_response_seconds": 180,
+        "max_confirmation_seconds": 240,
+        "outputs_allowed": ["market_answer", "trade_recommendation", "order_ticket_draft", "cancel_replace_suggestion"],
+        "actual_broker_writes": false
+      },
+      "trade_authorization_request": {
+        "first_worker": "google_antigravity",
+        "confirm_worker": "deterministic_local_gate",
+        "controller": "deterministic_local_gate",
+        "max_first_response_seconds": 120,
+        "max_confirmation_seconds": 240,
+        "outputs_allowed": ["authorization_record", "risk_precheck", "order_ticket_draft", "cancel_replace_suggestion"],
+        "actual_broker_writes": false,
+        "future_gate_required": true
+      },
+      "user_research_request": {
+        "first_worker": "google_antigravity",
+        "confirm_worker": "deterministic_local_gate",
+        "controller": "deterministic_local_gate",
+        "max_first_response_seconds": 300,
+        "max_confirmation_seconds": 300
+      }
+    }
+  },
+  "communication": {
+    "bus_dir": "/app/agent/state/ai_bus",
+    "run_dir": "/app/agent/runs",
+    "message_schema": "/app/agent/schemas/ai_message.schema.json",
+    "protocol": [
+      "The local controller writes a bounded task envelope after a qualified trigger.",
+      "Google writes an evidence envelope with source tiers, URLs, and limitations.",
+      "The local controller verifies schema, dedupe, thresholds, and safety gates.",
+      "Only a substantive reviewed output may be promoted into a draft source event."
+    ],
+    "statuses": [
+      "queued",
+      "running",
+      "completed",
+      "refused_by_policy",
+      "timeout",
+      "needs_human_review"
+    ],
+    "correlation_keys": [
+      "run_id",
+      "thread_id",
+      "symbol",
+      "topic",
+      "source_url"
+    ]
+  },
+  "quorum_policy": {
+    "L0": "single_worker_low_confidence_allowed",
+    "L1": "deterministic_price_or_source_discovery_only",
+    "L2": "google_review_plus_two_independent_sources_or_price_resonance",
+    "L3": "official_confirmation_plus_deterministic_risk_gate",
+    "L4": "L3_or_L2_plus_current_holding_or_open_order_hit_with_fresh_market_context",
+    "trade_execution": "never_auto_execute_from_worker_output"
+  }
+}

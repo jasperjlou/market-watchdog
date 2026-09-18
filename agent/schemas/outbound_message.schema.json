@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Market Watchdog Outbound Message",
+  "type": "object",
+  "required": [
+    "version",
+    "message_id",
+    "created_at",
+    "channel",
+    "kind",
+    "subject",
+    "body",
+    "status",
+    "human_review_required",
+    "no_auto_trade"
+  ],
+  "properties": {
+    "version": {"type": "string"},
+    "message_id": {"type": "string"},
+    "created_at": {"type": "string"},
+    "channel": {"enum": ["gmail", "wechat", "whatsapp", "telegram", "both"]},
+    "kind": {"type": "string"},
+    "priority": {"enum": ["low", "normal", "high", "urgent"]},
+    "subject": {"type": "string"},
+    "body": {"type": "string"},
+    "status": {"enum": ["queued", "dry_run", "draft_created", "sent", "sent_partial", "refused", "failed"]},
+    "human_review_required": {"type": "boolean"},
+    "no_auto_trade": {"type": "boolean"},
+    "source_run_id": {"type": ["string", "null"]},
+    "dispatch": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

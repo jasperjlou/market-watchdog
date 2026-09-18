@@ -1,0 +1,9 @@
+PyYAML==6.0.3
+yfinance==1.6.0
+requests==2.34.2
+feedparser==6.0.14
+Markdown==3.10.3
+google-api-python-client==2.198.0
+google-auth==2.56.3
+google-auth-oauthlib==1.4.0
+google-auth-httplib2==0.4.1

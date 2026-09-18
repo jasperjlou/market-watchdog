@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# Local tooling and generated output
+.local/
+.codex-tmp/
+.test-tools/
+runs/
+state/
+logs/
+reports/
+archives/
+*.tar
+*.tar.gz
+
+# Secrets and runtime identity
+.env
+.env.*
+!.env.example
+secrets/
+credentials*.json
+token*.json
+*token*.txt
+*.pem
+*.key
+*.p12
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
