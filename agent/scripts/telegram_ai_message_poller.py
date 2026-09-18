@@ -16,7 +16,8 @@ from typing import Any
 import wechat_ai_message_poller as shared
 
 
-APP_DIR = Path(os.environ.get("APP_DIR", "/app"))
+PROJECT_DIR = Path(__file__).resolve().parents[2]
+APP_DIR = Path(os.environ.get("APP_DIR", str(PROJECT_DIR)))
 AGENT_DIR = Path(os.environ.get("AGENT_DIR", str(APP_DIR / "agent")))
 STATE_PATH = AGENT_DIR / "state" / "telegram_ai_gateway_state.json"
 LATEST_ANSWER_PATH = AGENT_DIR / "state" / "telegram_ai_latest_answer.json"

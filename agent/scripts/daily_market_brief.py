@@ -14,7 +14,8 @@ from pathlib import Path
 from typing import Any, Callable
 
 
-APP_DIR = Path(os.environ.get("APP_DIR", "/app"))
+PROJECT_DIR = Path(__file__).resolve().parents[2]
+APP_DIR = Path(os.environ.get("APP_DIR", str(PROJECT_DIR)))
 AGENT_DIR = Path(os.environ.get("AGENT_DIR", str(APP_DIR / "agent")))
 STATE_DIR = AGENT_DIR / "state"
 OUTLOOK_PATH = STATE_DIR / "trend_outlook_latest.json"

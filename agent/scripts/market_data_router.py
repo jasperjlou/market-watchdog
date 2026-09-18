@@ -21,7 +21,8 @@ from pathlib import Path
 from typing import Any, Callable
 
 
-APP_DIR = Path(os.environ.get("APP_DIR", "/app"))
+PROJECT_DIR = Path(__file__).resolve().parents[2]
+APP_DIR = Path(os.environ.get("APP_DIR", str(PROJECT_DIR)))
 CONFIG_PATH = APP_DIR / "config" / "market_data.yaml"
 ISOLATED_RUNTIME = APP_DIR / ".runtime" / "market-data"
 

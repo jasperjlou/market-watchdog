@@ -19,7 +19,8 @@ from statistics import median
 from typing import Any
 
 
-APP_DIR = Path(os.environ.get("APP_DIR", "/app"))
+PROJECT_DIR = Path(__file__).resolve().parents[2]
+APP_DIR = Path(os.environ.get("APP_DIR", str(PROJECT_DIR)))
 AGENT_DIR = APP_DIR / "agent"
 STATE_DIR = AGENT_DIR / "state"
 TRIGGER_DIR = STATE_DIR / "ai_bus" / "triggers"

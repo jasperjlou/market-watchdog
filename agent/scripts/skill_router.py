@@ -24,7 +24,8 @@ from pathlib import Path
 from typing import Any
 
 
-APP_DIR = Path(os.environ.get("APP_DIR", "/app"))
+PROJECT_DIR = Path(__file__).resolve().parents[2]
+APP_DIR = Path(os.environ.get("APP_DIR", str(PROJECT_DIR)))
 AGENT_DIR = Path(os.environ.get("AGENT_DIR", str(APP_DIR / "agent")))
 SKILLS_DIR = AGENT_DIR / "skills"
 RUNS_DIR = AGENT_DIR / "runs"

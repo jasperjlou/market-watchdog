@@ -16,7 +16,8 @@ from typing import Any
 from market_data_router import fetch_realtime_snapshots, optional_import, safe_float, select_symbol_frame
 
 
-APP_DIR = Path(os.environ.get("APP_DIR", "/app"))
+PROJECT_DIR = Path(__file__).resolve().parents[2]
+APP_DIR = Path(os.environ.get("APP_DIR", str(PROJECT_DIR)))
 AGENT_DIR = APP_DIR / "agent"
 STATE_DIR = AGENT_DIR / "state"
 REPORTS_DIR = APP_DIR / "reports"

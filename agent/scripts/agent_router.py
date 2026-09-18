@@ -22,7 +22,8 @@ from pathlib import Path
 from typing import Any
 
 
-APP_DIR = Path(os.environ.get("APP_DIR", "/app"))
+PROJECT_DIR = Path(__file__).resolve().parents[2]
+APP_DIR = Path(os.environ.get("APP_DIR", str(PROJECT_DIR)))
 AGENT_DIR = APP_DIR / "agent"
 RUNS_DIR = AGENT_DIR / "runs"
 SCHEMA_PATH = AGENT_DIR / "schemas" / "worker_evidence.schema.json"

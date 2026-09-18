@@ -19,7 +19,8 @@ from typing import Any
 from market_data_router import frame_rows, optional_import, safe_float
 
 
-APP_DIR = Path(os.environ.get("APP_DIR", "/app"))
+PROJECT_DIR = Path(__file__).resolve().parents[2]
+APP_DIR = Path(os.environ.get("APP_DIR", str(PROJECT_DIR)))
 DEFAULT_OUTPUT = APP_DIR / "agent" / "state" / "moomoo_portfolio_snapshot_latest.json"
 
 
