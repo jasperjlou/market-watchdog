@@ -2,48 +2,115 @@
 
 [![Tests](https://github.com/jasperjlou/market-watchdog/actions/workflows/tests.yml/badge.svg)](https://github.com/jasperjlou/market-watchdog/actions/workflows/tests.yml)
 
-Market Watchdog is a read-only market-intelligence and alerting system for U.S. equities. It combines layered price scans, theme-aware news collection, source-quality grading, read-only Moomoo OpenD data, and bounded AI review to produce explainable outlooks and deduplicated alerts without placing trades.
+**Market Watchdog is a read-only market-intelligence, evidence-fusion, and alerting system for U.S. equities.** It combines market data, regulatory/news evidence, deterministic risk rules, optional bounded AI review, and stateful deduplication to produce explainable alerts and recurring reports without exposing an order-placement path.
 
-> Research and engineering project only. It does not provide investment advice, promise returns, or expose an order-placement path.
+> Research and engineering project only. It does not provide investment advice, promise returns, or place trades.
 
-## What it does
-
-- Scans broad-market indices and six configurable baskets: semiconductors, memory and storage, gold, space and aerospace, mega-cap technology, and cross-market context.
-- Builds 1-5 trading-day and 2-6 week outlooks from returns, moving averages, RSI, ATR, volume anomalies, breakouts, theme breadth, and verified news.
-- Routes market data through read-only Moomoo OpenD first and a labelled yfinance fallback; every quote keeps its source and collection time.
-- Grades evidence from official filings through lower-trust media, then promotes events through L0-L4 gates. Price-only events remain capped until independent evidence confirms them.
-- Resolves Chinese issuer names, traditional-Chinese variants, English company names, ticker symbols, and theme queries into the monitored universe.
-- Keeps repeated alerts in a warning chamber and re-notifies only after a severity change, direction flip, material new evidence, a portfolio threshold, or a scheduled close review.
-- Separates urgent alerts from daily and weekly reports. External channels remain disabled in this public snapshot.
-
-## Architecture
+## Current system topology
 
 ```mermaid
 flowchart LR
-    A[Read-only quotes and positions] --> C[Feature and anomaly pipeline]
-    B[News, filings, and source metadata] --> D[Evidence normalization]
-    C --> E[Trend and risk fusion]
-    D --> E
-    E --> F{L0-L4 gates}
-    F -->|L0-L1| G[Internal queue]
-    F -->|L2-L4| H[Warning chamber and deduplication]
-    H --> I[Human-readable alert or report]
-    J[Safety policy] --> E
-    J --> I
-    J -. blocks .-> K[Broker writes]
+    M[Moomoo OpenD\nprimary read-only source] --> R[Market Data Router]
+    Y[yfinance\nlabelled fallback] --> R
+    I[Optional IBKR\nread-only snapshot support\noff by default] --> R
+    N[News / filings / source metadata] --> E[Evidence Normalization]
+
+    R --> F[Features & Anomaly Detection]
+    F --> X[Deterministic Signal Fusion]
+    E --> X
+
+    X --> G{L0-L4 Evidence / Risk Gates}
+    G -->|low confidence| Q[Internal Queue]
+    G -->|qualified event| A[Optional AI Coordinator / Review]
+    A --> W[Warning Chamber & Deduplication]
+    G --> W
+
+    W --> O[Alerts / Daily Briefs / Weekly Reports]
+    O --> C[Communication Gateway\nexternally gated]
+
+    S[Safety & Authorization Policy] --> R
+    S --> X
+    S --> A
+    S --> C
+    S -. blocks .-> B[Broker Writes / Orders]
 ```
 
-The deterministic pipeline owns symbol resolution, feature calculation, deduplication, and safety checks. Optional AI workers may review qualified events, but their output cannot bypass evidence requirements, send directly, or call broker-write APIs.
+The deterministic pipeline owns symbol resolution, feature calculation, evidence requirements, deduplication, and safety checks. AI workers can review qualified events, but their output cannot bypass the same gates, call broker-write APIs, or silently promote weak evidence.
+
+## What the repository implements
+
+### Market-data routing
+
+The checked-in configuration currently uses:
+
+1. **Moomoo OpenD** as the primary enabled read-only source for supported U.S. stocks and ETFs;
+2. **yfinance** as a labelled fallback source;
+3. an **IBKR read-only provider path** that exists in the router and portfolio snapshot tooling but is **disabled by default** in `config/market_data.yaml`.
+
+Every quote is expected to retain its source and collection time so the system can distinguish fresh, delayed, and fallback data instead of mixing them without attribution.
+
+### Signal and evidence fusion
+
+The system combines price/volume features with independent evidence rather than treating a price move as its own explanation. Current components cover:
+
+- returns, moving averages, RSI, ATR, volume anomalies, and breakouts;
+- theme breadth and cross-symbol context;
+- news, filings, and source-quality metadata;
+- multilingual issuer/symbol aliases;
+- configurable event templates, scoring, scan policies, and risk controls;
+- L0-L4 evidence and alert grading.
+
+Price-only events remain bounded until corroborating evidence supports a higher-confidence interpretation.
+
+### Stateful alerting
+
+Repeated events are tracked rather than emitted as isolated messages. Re-notification is reserved for material changes such as:
+
+- severity changes;
+- direction flips;
+- materially new evidence;
+- relevant portfolio/threshold changes;
+- scheduled close or periodic review.
+
+This keeps the system from repeatedly alerting on the same underlying event simply because multiple sources repeat it.
+
+### AI orchestration
+
+The repository now includes a larger orchestration layer around the deterministic core, including:
+
+- `ai_coordinator.py` and agent routing;
+- bounded Codex/query workers and fusion gates;
+- communication policy and gateway controls;
+- runtime-isolation rules;
+- read-only portfolio snapshots;
+- recurring daily-market briefs;
+- integration metadata and authorization checks.
+
+These components are deliberately isolated. An unavailable AI provider, messaging integration, or optional sidecar should not stop the deterministic market-data and evidence pipeline.
+
+## Safety model
+
+Safety is part of the architecture rather than a final UI warning.
+
+- `actual_broker_writes` is `false` in shipped policy.
+- Moomoo trade-context use is restricted to read-only account/position queries.
+- The optional IBKR path is read-only and disabled by default in the current market-data configuration.
+- Order, cancel, modify, and transmit paths are not part of the public application flow.
+- External communication is independently gated and disabled in the public snapshot unless explicitly configured.
+- Credentials, account identifiers, private portfolio snapshots, runtime logs, local caches, and deployment-specific secrets stay outside the repository.
+- AI output is treated as advisory evidence and remains subject to deterministic authorization and alert gates.
 
 ## Repository layout
 
 | Path | Purpose |
 | --- | --- |
-| `agent/scripts/` | Market-data routing, K-line features, news collection, signal fusion, outlooks, alert grading, and report generation |
-| `agent/config/` | Evidence tiers, channel roles, model isolation, and runtime policy |
-| `config/` | Watch universe, theme baskets, risk thresholds, multilingual aliases, and market-data policy |
-| `agent/tests/` | Deterministic regression tests for data, signals, safety gates, retention, and messaging boundaries |
-| `docs/` | Runtime isolation and curated-data lifecycle |
+| `agent/scripts/` | Market-data routing, snapshots, features, evidence fusion, AI coordination, alerting, reports, integration and authorization logic |
+| `agent/config/` | AI orchestration, evidence tiers, communication rules, source catalogues, runtime isolation and worker policy |
+| `agent/policies/` | Explicit capability / permission boundaries |
+| `agent/schemas/` | Structured contracts for AI evidence and outbound messages |
+| `config/` | Watch universe, data-provider policy, source catalogue, event templates, scoring, thresholds and risk controls |
+| `agent/tests/` | Regression coverage for signals, safety gates, deduplication, integrations and message boundaries |
+| `docs/` | Runtime isolation, data curation, architecture and operational notes |
 
 ## Quick start
 
@@ -68,22 +135,23 @@ python agent/scripts/kline_snapshot.py \
   --replace-output
 ```
 
-Moomoo support is optional and uses the official OpenD client on loopback:
+Moomoo support is optional at installation time and uses the official OpenD client on loopback:
 
 ```bash
 python -m pip install -r requirements-market-data.txt
 ```
 
-The application permits quote reads plus account-list and position-list queries. It does not unlock trading or implement order, cancel, modify, or transmit methods.
+The current checked-in provider policy prioritizes Moomoo and uses yfinance as fallback. If an alternative provider path is enabled locally, it remains subject to the same source labelling and read-only safety requirements.
 
-## Safety model
+## Design principles
 
-- `actual_broker_writes` stays `false` in every shipped policy.
-- External sends are disabled in the public configuration.
-- Credentials, account identifiers, portfolio snapshots, runtime logs, caches, and deployment-specific files are excluded from the repository.
-- A provider outage does not stop deterministic scans or compact data retention.
-- AI output is advisory evidence and must pass the same deterministic gates as any other source.
+1. **Evidence before explanation.** A market move is not automatically a verified causal story.
+2. **Deterministic safety before model judgment.** Models can review; they do not define permissions.
+3. **State before spam.** Events have identities, severity, evidence state, and cooldown history.
+4. **Source attribution everywhere.** Quotes and evidence preserve where they came from and when they were collected.
+5. **Graceful degradation.** Optional integrations can fail without collapsing the core scanner.
+6. **Read-only by construction.** The project is designed for monitoring and analysis, not execution.
 
-## 中文简介
+## Scope
 
-Market Watchdog 是一个只读的美股行情分析与预警项目。系统持续整理价格走势、主题新闻和官方信息，覆盖大盘、半导体、存储、黄金、航天与大型科技股，并按证据质量和价格共振给出短期、波段判断。Moomoo OpenD 只读取行情与持仓，所有下单接口都保持关闭；公开仓库也不包含账号、令牌、持仓快照和生产环境地址。
+This public repository is a sanitized engineering snapshot. It demonstrates the architecture, rules, schemas, tests, and read-only integration patterns. It intentionally excludes personal financial data, live credentials, production endpoints, and private communication state.
